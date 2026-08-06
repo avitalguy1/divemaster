@@ -101,6 +101,32 @@ export async function generateEvaluationPdf(courseId: string, txClient?: any): P
       });
 
       yPosition -= 14;
+
+      // Render Instructor Name & PADI ID for each approved sign-off
+      const approvedRequests = (item.requests || []).filter((r: any) => r.status === 'APPROVED');
+      for (const req of approvedRequests) {
+        if (yPosition < 40) {
+          page = pdfDoc.addPage([595.28, 841.89]);
+          yPosition = height - 40;
+        }
+
+        const instName = req.instructorNameSnapshot || 'Instructor';
+        const instPadi = req.instructorPadiSnapshot ? ` (PADI #: ${req.instructorPadiSnapshot})` : '';
+        const dateStr = req.decidedAt ? new Date(req.decidedAt).toISOString().split('T')[0] : '';
+        const scoreStr = req.score ? ` • Score: ${req.score}/5` : '';
+
+        const approvalDetail = `    Approved by ${instName}${instPadi} on ${dateStr}${scoreStr}`;
+
+        page.drawText(approvalDetail, {
+          x: 42,
+          y: yPosition,
+          size: 7.5,
+          font: font,
+          color: rgb(0.15, 0.35, 0.55),
+        });
+
+        yPosition -= 11;
+      }
     }
 
     yPosition -= 10;
