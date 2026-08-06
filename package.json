@@ -12,7 +12,7 @@
     "test": "node --env-file=.env.local node_modules/vitest/vitest.mjs run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "db:push": "drizzle-kit push --env-file=.env.local",
+    "db:push": "node --env-file=.env.local node_modules/drizzle-kit/bin.cjs push",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file=.env.local lib/db/migrate.ts",
     "db:seed": "tsx --env-file=.env.local lib/db/seed.ts",
