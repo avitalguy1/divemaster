@@ -9,7 +9,7 @@ export const GET = createApiHandler({
   handler: async ({ session, tx }) => {
     if (!session) throw new ApiError(401, 'UNAUTHENTICATED', 'Authentication required');
 
-    // Fetch all students at dive center
+    // Fetch all students at dive center (including active and soft-deleted)
     const studentUsers = await tx
       .select()
       .from(users)
@@ -21,7 +21,7 @@ export const GET = createApiHandler({
       const studentCourseRows = await tx
         .select()
         .from(courses)
-        .where(and(eq(courses.studentId, student.id), eq(courses.status, 'ACTIVE')));
+        .where(eq(courses.studentId, student.id));
 
       const studentCourse = studentCourseRows[0];
       if (!studentCourse) continue;
@@ -64,6 +64,7 @@ export const GET = createApiHandler({
         studentName: `${student.firstName} ${student.lastName}`,
         email: student.email,
         courseId: studentCourse.id,
+        isActive: student.isActive,
         approvedUnits: progress.approvedUnits,
         percentComplete: progress.percentComplete,
         status: progress.isComplete ? 'COMPLETE' : 'ACTIVE',

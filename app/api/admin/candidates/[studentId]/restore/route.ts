@@ -2,7 +2,7 @@ import { createApiHandler, ApiError } from '@/lib/api/handler';
 import { users, auditLog } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
-export const DELETE = createApiHandler({
+export const POST = createApiHandler({
   requireAuth: true,
   roles: ['ADMIN'],
   handler: async ({ params, session, tx }) => {
@@ -17,7 +17,7 @@ export const DELETE = createApiHandler({
       throw new ApiError(400, 'INVALID_INPUT', 'Student ID is required');
     }
 
-    // Find candidate user
+    // Find soft-deleted candidate user
     const userRows = await tx
       .select()
       .from(users)
@@ -28,33 +28,33 @@ export const DELETE = createApiHandler({
       throw new ApiError(404, 'STUDENT_NOT_FOUND', 'DMT Candidate not found');
     }
 
-    // Soft delete student (mark isActive = false)
+    // Restore student (mark isActive = true)
     await tx
       .update(users)
-      .set({ isActive: false, updatedAt: new Date() })
+      .set({ isActive: true, updatedAt: new Date() })
       .where(eq(users.id, studentId));
 
-    // Log soft-deletion in audit log
+    // Log restore action in audit log
     await tx.insert(auditLog).values({
       actorId: session.userId,
       entity: 'user',
       entityId: studentId,
-      action: 'SOFT_DELETE_STUDENT',
+      action: 'RESTORE_STUDENT',
       before: {
         id: targetStudent.id,
         name: `${targetStudent.firstName} ${targetStudent.lastName}`,
         email: targetStudent.email,
-        isActive: true,
+        isActive: false,
       },
       after: {
         id: targetStudent.id,
-        isActive: false,
+        isActive: true,
       },
     });
 
     return {
       success: true,
-      message: `Candidate ${targetStudent.firstName} ${targetStudent.lastName} was soft-deleted and moved to Deleted DMTs.`,
+      message: `Candidate ${targetStudent.firstName} ${targetStudent.lastName} has been restored successfully.`,
     };
   },
 });
