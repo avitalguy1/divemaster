@@ -60,14 +60,14 @@ export default function LoginPage() {
 
       // Redirect based on user role
       const role = body.user.role;
-      if (role === 'ADMIN') {
-        router.push('/admin');
-      } else if (role === 'INSTRUCTOR') {
-        router.push('/instructor');
-      } else {
-        router.push('/dashboard');
-      }
-      router.refresh();
+      const targetPath =
+        role === 'ADMIN'
+          ? '/admin'
+          : role === 'INSTRUCTOR'
+          ? '/instructor'
+          : '/dashboard';
+
+      window.location.href = targetPath;
     } catch {
       setErrorMsg(t('invalidCredentials'));
       setIsLoading(false);

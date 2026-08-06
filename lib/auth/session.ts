@@ -51,10 +51,10 @@ export async function setSessionCookie(token: string): Promise<void> {
     const cookieStore = await cookies();
     cookieStore.set(SESSION_COOKIE_NAME, token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false,
       sameSite: 'lax',
       path: '/',
-      maxAge: 15 * 60, // 15 minutes
+      maxAge: 7 * 24 * 60 * 60, // 7 days session duration
     });
   } catch {
     // Safe fallback for execution outside Next.js request store (e.g. unit tests)
