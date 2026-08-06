@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useRef } from 'react';
 import Link from 'next/link';
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -85,6 +85,7 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
 
   // Active evaluating request
   const [activeReq, setActiveReq] = useState<PendingReq | null>(null);
+  const evalSectionRef = useRef<HTMLDivElement | null>(null);
 
   // Signature & adoption state
   const [signatureData, setSignatureData] = useState<string>('');
@@ -163,6 +164,11 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
       setUseAdoptedSignature(false);
       setSignatureData('');
     }
+
+    // Scroll down to evaluation section smoothly
+    setTimeout(() => {
+      evalSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
   };
 
   const handleApprove = async () => {
@@ -371,7 +377,10 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
 
                   {/* Expanded Items List */}
                   {isExpanded && (
-                    <div className="border-t border-slate-800 bg-slate-900/90 p-3 space-y-2">
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="border-t border-slate-800 bg-slate-900/90 p-3 space-y-2"
+                    >
                       {!secData || !secData.items || secData.items.length === 0 ? (
                         <div className="text-xs text-slate-500 italic py-2 text-center">No requirement items in this section.</div>
                       ) : (
@@ -408,7 +417,10 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
                                 {pendingForThisItem && (
                                   <Button
                                     size="sm"
-                                    onClick={() => startEvaluation(pendingForThisItem)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      startEvaluation(pendingForThisItem);
+                                    }}
                                     className="h-7 text-[11px] bg-blue-600 hover:bg-blue-500 text-white font-semibold"
                                   >
                                     Evaluate & Sign
@@ -429,7 +441,7 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
       </div>
 
       {/* Pending Sign-off Requests Area */}
-      <div className="space-y-6">
+      <div ref={evalSectionRef} className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-lg font-bold text-white">
             Pending Sign-off Requests ({candidate.pendingCount})
