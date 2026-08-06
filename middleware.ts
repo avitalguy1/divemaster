@@ -54,6 +54,13 @@ export async function middleware(req: NextRequest) {
 
   // Role-based protection for specific route prefixes
   if (sessionPayload) {
+    if (pathname.startsWith('/instructors')) {
+      if (sessionPayload.role !== 'ADMIN' && sessionPayload.role !== 'INSTRUCTOR') {
+        return NextResponse.redirect(new URL('/dashboard', req.url));
+      }
+      return NextResponse.next();
+    }
+
     if (pathname.startsWith('/admin') && sessionPayload.role !== 'ADMIN') {
       const fallback = sessionPayload.role === 'INSTRUCTOR' ? '/instructor' : '/dashboard';
       return NextResponse.redirect(new URL(fallback, req.url));
