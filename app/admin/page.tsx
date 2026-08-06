@@ -160,6 +160,27 @@ export default function AdminPage() {
     }
   };
 
+  const handleDeleteCandidate = async (studentId: string, studentName: string) => {
+    if (!confirm(`Are you sure you want to permanently delete DMT candidate "${studentName}"?\n\nThis will remove all associated sign-off requests and course evaluation progress.`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/admin/candidates/${studentId}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        loadAdminData();
+      } else {
+        const body = await res.json();
+        alert(body.error?.message || 'Failed to delete candidate');
+      }
+    } catch {
+      alert('Failed to delete candidate');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-8 space-y-6 max-w-6xl mx-auto">
       {/* Header Banner */}
@@ -220,7 +241,7 @@ export default function AdminPage() {
           <CardHeader>
             <CardTitle className="text-lg font-bold text-slate-800">DMT Candidates Roster</CardTitle>
             <CardDescription className="text-slate-500 text-sm">
-              Click on any candidate to inspect their status report, completed tasks, and evaluation records
+              Manage DMT candidates, inspect status reports, or permanently delete test accounts
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -236,7 +257,7 @@ export default function AdminPage() {
                     <TableHead className="text-slate-700 font-bold">Training Status</TableHead>
                     <TableHead className="text-slate-700 font-bold">Approved Units</TableHead>
                     <TableHead className="text-slate-700 font-bold">Overall Progress</TableHead>
-                    <TableHead className="text-right text-slate-700 font-bold">Action</TableHead>
+                    <TableHead className="text-right text-slate-700 font-bold">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -273,11 +294,21 @@ export default function AdminPage() {
                       </TableCell>
 
                       <TableCell className="text-right">
-                        <Link href={`/admin/candidates/${cand.studentId}`}>
-                          <Button size="sm" className="bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-xs">
-                            View Status Report &rarr;
+                        <div className="flex justify-end items-center gap-2">
+                          <Link href={`/admin/candidates/${cand.studentId}`}>
+                            <Button size="sm" className="bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-xs text-xs">
+                              View Report
+                            </Button>
+                          </Link>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteCandidate(cand.studentId, cand.studentName)}
+                            className="border-red-200 text-red-700 hover:bg-red-50 font-medium text-xs"
+                          >
+                            Delete
                           </Button>
-                        </Link>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
