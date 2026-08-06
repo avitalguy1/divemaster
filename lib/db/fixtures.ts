@@ -19,15 +19,19 @@ async function main() {
   console.log('Generating development fixtures...');
 
   // Clean existing fixture data for idempotent execution
-  await db.delete(notifications);
-  await db.delete(auditLog);
-  await db.delete(signoffScores);
-  await db.delete(signoffRequests);
-  await db.delete(signatures);
-  await db.delete(studentProfiles);
-  await db.delete(courses);
-  await db.delete(users);
-  await db.delete(diveCenters);
+  try {
+    await db.delete(notifications);
+    await db.delete(auditLog);
+    await db.delete(signoffScores);
+    await db.delete(signoffRequests);
+    await db.delete(signatures);
+    await db.delete(studentProfiles);
+    await db.delete(courses);
+    await db.delete(users);
+    await db.delete(diveCenters);
+  } catch {
+    // Ignore missing tables on fresh database setup
+  }
 
   try {
     // 1. Create Dive Center
