@@ -18,9 +18,9 @@ This guide walks you step-by-step through deploying the **DiveMaster Progress Ap
    sudo apt install -y nodejs
    ```
 
-3. **Install pnpm & PM2 globally**:
+3. **Install pnpm@9 & PM2 globally**:
    ```bash
-   sudo npm install -g pnpm pm2
+   sudo npm install -g pnpm@9 pm2
    ```
 
 4. **Verify versions**:
