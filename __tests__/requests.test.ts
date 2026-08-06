@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { db } from '../lib/db';
 import {
   users,
@@ -9,7 +9,7 @@ import {
   notifications,
   diveCenters,
 } from '../lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 import {
   createSignoffRequest,
   approveSignoffRequest,
@@ -29,6 +29,7 @@ describe('Sign-off Requests & Approval Domain Rules Test', () => {
   let testItemMulti: any; // requiredCount = 2 (e.g. PA_SKILL3)
 
   const dummySignatureData = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+  const createdTestReqIds: string[] = [];
 
   beforeAll(async () => {
     // Query existing dev fixtures
@@ -51,6 +52,14 @@ describe('Sign-off Requests & Approval Domain Rules Test', () => {
     testItemMulti = multiRows[0];
   });
 
+  afterAll(async () => {
+    if (createdTestReqIds.length > 0) {
+      await db.delete(auditLog).where(inArray(auditLog.entityId, createdTestReqIds));
+      await db.delete(notifications).where(inArray(notifications.requestId, createdTestReqIds));
+      await db.delete(signoffRequests).where(inArray(signoffRequests.id, createdTestReqIds));
+    }
+  });
+
   it('should reject a request with a future performedAt timestamp', async () => {
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + 5);
@@ -68,17 +77,14 @@ describe('Sign-off Requests & Approval Domain Rules Test', () => {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
 
-    // Clear any previous test requests for testItemMulti
-    await db
-      .delete(signoffRequests)
-      .where(and(eq(signoffRequests.courseId, testCourse.id), eq(signoffRequests.itemId, testItemMulti.id)));
-
     const req1 = await createSignoffRequest(studentUser.id, diveCenter.id, {
       itemId: testItemMulti.id,
       performedAt: yesterday,
       instructorId: instructorUser.id,
       studentNote: 'Completed Briefing Practice 1',
     });
+
+    createdTestReqIds.push(req1.id);
 
     expect(req1.attemptNumber).toBe(1);
     expect(req1.status).toBe('PENDING');
