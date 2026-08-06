@@ -25,15 +25,6 @@ interface CandidateOverview {
   pendingCount: number;
 }
 
-interface InstructorOverview {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  padiNumber: string | null;
-  isActive: boolean;
-}
-
 interface AuditLogEntry {
   id: number;
   actor: {
@@ -50,25 +41,13 @@ interface AuditLogEntry {
 }
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<'dmts' | 'archive' | 'deleted' | 'instructors' | 'reports'>('dmts');
+  const [activeTab, setActiveTab] = useState<'dmts' | 'archive' | 'deleted' | 'reports'>('dmts');
   const [searchQuery, setSearchQuery] = useState('');
 
   // DMTs State
   const [candidates, setCandidates] = useState<CandidateOverview[]>([]);
-  // Instructors State
-  const [instructors, setInstructors] = useState<InstructorOverview[]>([]);
   // Reports / Audit State
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
-
-  // Add Instructor Modal State
-  const [showAddInstModal, setShowAddInstModal] = useState(false);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [padiNumber, setPadiNumber] = useState('');
-  const [password, setPassword] = useState('Password123!');
-  const [isSubmittingInst, setIsSubmittingInst] = useState(false);
-  const [instError, setInstError] = useState<string | null>(null);
 
   // Reset Password Modal State
   const [activeResetUser, setActiveResetUser] = useState<{ id: string; name: string; email: string; role: string } | null>(null);
@@ -81,20 +60,14 @@ export default function AdminPage() {
   const loadAdminData = async () => {
     setIsLoading(true);
     try {
-      const [candRes, instRes, auditRes] = await Promise.all([
+      const [candRes, auditRes] = await Promise.all([
         fetch('/api/instructors/candidates'),
-        fetch('/api/instructors'),
         fetch('/api/audit-logs'),
       ]);
 
       if (candRes.ok) {
         const body = await candRes.json();
         setCandidates(body.candidates || []);
-      }
-
-      if (instRes.ok) {
-        const body = await instRes.json();
-        setInstructors(body.instructors || []);
       }
 
       if (auditRes.ok) {
@@ -111,50 +84,6 @@ export default function AdminPage() {
   useEffect(() => {
     loadAdminData();
   }, []);
-
-  const handleCreateInstructor = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!firstName || !lastName || !email || !padiNumber) {
-      setInstError('All fields including PADI Number are required for instructors.');
-      return;
-    }
-
-    setIsSubmittingInst(true);
-    setInstError(null);
-
-    try {
-      const res = await fetch('/api/instructors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          email,
-          padiNumber,
-          password,
-        }),
-      });
-
-      const body = await res.json();
-      if (!res.ok) {
-        setInstError(body.error?.message || 'Failed to create instructor');
-        setIsSubmittingInst(false);
-        return;
-      }
-
-      setShowAddInstModal(false);
-      setFirstName('');
-      setLastName('');
-      setEmail('');
-      setPadiNumber('');
-      setPassword('Password123!');
-      loadAdminData();
-    } catch {
-      setInstError('Failed to create instructor');
-    } finally {
-      setIsSubmittingInst(false);
-    }
-  };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,19 +117,6 @@ export default function AdminPage() {
       setResetError('Failed to reset password');
     } finally {
       setIsSubmittingReset(false);
-    }
-  };
-
-  const handleDeleteInstructor = async (instId: string) => {
-    if (!confirm('Are you sure you want to deactivate this instructor?')) return;
-
-    try {
-      const res = await fetch(`/api/instructors/${instId}`, { method: 'DELETE' });
-      if (res.ok) {
-        loadAdminData();
-      }
-    } catch (err) {
-      console.error('Failed to delete instructor:', err);
     }
   };
 
@@ -302,7 +218,7 @@ export default function AdminPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Admin Management Panel</h1>
           <p className="text-sm text-sky-100 mt-1 font-medium">
-            Manage DMT Candidates, Graduated Archives, Instructors, and Audit Records
+            Manage DMT Candidates, Graduated Archives, and Audit Records
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -346,17 +262,6 @@ export default function AdminPage() {
           }
         >
           Deleted DMTs ({totalDeletedCount})
-        </Button>
-        <Button
-          variant={activeTab === 'instructors' ? 'default' : 'ghost'}
-          onClick={() => setActiveTab('instructors')}
-          className={
-            activeTab === 'instructors'
-              ? 'bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'
-          }
-        >
-          Instructors ({instructors.length})
         </Button>
         <Button
           variant={activeTab === 'reports' ? 'default' : 'ghost'}
@@ -660,93 +565,7 @@ export default function AdminPage() {
         </Card>
       )}
 
-      {/* TAB 4: Instructors Management */}
-      {activeTab === 'instructors' && (
-        <Card className="border border-slate-200/80 bg-white shadow-xs">
-          <CardHeader className="flex flex-row justify-between items-center">
-            <div>
-              <CardTitle className="text-lg font-bold text-slate-800">Staff Instructors</CardTitle>
-              <CardDescription className="text-slate-500 text-sm">
-                Add and manage authorized PADI instructors for evaluations and sign-offs
-              </CardDescription>
-            </div>
-            <Button
-              onClick={() => setShowAddInstModal(true)}
-              className="bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-xs"
-            >
-              + Add New Instructor
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="py-12 text-center text-slate-500 font-medium">Loading instructors...</div>
-            ) : instructors.length === 0 ? (
-              <div className="py-12 text-center text-slate-500 font-medium">No instructors found.</div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-slate-200 hover:bg-transparent">
-                    <TableHead className="text-slate-700 font-bold">Instructor Name</TableHead>
-                    <TableHead className="text-slate-700 font-bold">Email</TableHead>
-                    <TableHead className="text-slate-700 font-bold">PADI Pro #</TableHead>
-                    <TableHead className="text-slate-700 font-bold">Status</TableHead>
-                    <TableHead className="text-right text-slate-700 font-bold">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {instructors.map((inst) => (
-                    <TableRow key={inst.id} className="border-slate-200 hover:bg-sky-50/40 transition-colors">
-                      <TableCell className="font-bold text-slate-800">
-                        {inst.firstName} {inst.lastName}
-                      </TableCell>
-                      <TableCell className="text-slate-600">{inst.email}</TableCell>
-                      <TableCell className="font-mono font-bold text-slate-700">
-                        {inst.padiNumber || 'N/A'}
-                      </TableCell>
-                      <TableCell>
-                        {inst.isActive ? (
-                          <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-300 font-semibold">
-                            ACTIVE STAFF
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="border-slate-300 text-slate-500">
-                            INACTIVE
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end items-center gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setActiveResetUser({ id: inst.id, name: `${inst.firstName} ${inst.lastName}`, email: inst.email, role: 'Staff Instructor' });
-                              setResetError(null);
-                            }}
-                            className="border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-medium text-xs"
-                          >
-                            Reset Password
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDeleteInstructor(inst.id)}
-                            className="border-red-200 text-red-700 hover:bg-red-50 font-medium text-xs"
-                          >
-                            Deactivate
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* TAB 5: Reports & Audit Log */}
+      {/* TAB 4: Reports & Audit Log */}
       {activeTab === 'reports' && (
         <Card className="border border-slate-200/80 bg-white shadow-xs">
           <CardHeader>
@@ -795,103 +614,6 @@ export default function AdminPage() {
           </CardContent>
         </Card>
       )}
-
-      {/* Add New Instructor Modal */}
-      <Dialog open={showAddInstModal} onOpenChange={setShowAddInstModal}>
-        <DialogContent className="border-slate-200 bg-white text-slate-900 max-w-md shadow-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-extrabold text-slate-900">Add New Staff Instructor</DialogTitle>
-            <DialogDescription className="text-slate-600 text-sm">
-              Create credentials for an authorized PADI Instructor to evaluate DMT candidates.
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleCreateInstructor} className="space-y-4 py-2">
-            {instError && (
-              <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-800 text-sm">
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{instError}</AlertDescription>
-              </Alert>
-            )}
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="firstName" className="text-slate-700 text-xs font-semibold">First Name *</Label>
-                <Input
-                  id="firstName"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="bg-white border-slate-300 text-slate-900"
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="lastName" className="text-slate-700 text-xs font-semibold">Last Name *</Label>
-                <Input
-                  id="lastName"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="bg-white border-slate-300 text-slate-900"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-slate-700 text-xs font-semibold">Instructor Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-white border-slate-300 text-slate-900"
-                required
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="padiNumber" className="text-slate-700 text-xs font-semibold">PADI Instructor Number (e.g. MSDT-123456) *</Label>
-              <Input
-                id="padiNumber"
-                value={padiNumber}
-                onChange={(e) => setPadiNumber(e.target.value)}
-                className="bg-white border-slate-300 text-slate-900 font-mono"
-                required
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-slate-700 text-xs font-semibold">Initial Password *</Label>
-              <Input
-                id="password"
-                type="text"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-white border-slate-300 text-slate-900 font-mono"
-                required
-              />
-            </div>
-
-            <DialogFooter className="pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowAddInstModal(false)}
-                className="border-slate-300 text-slate-600 hover:bg-slate-100"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmittingInst}
-                className="bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-xs"
-              >
-                {isSubmittingInst ? 'Creating Instructor...' : 'Create Instructor Account'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
 
       {/* Reset Password Modal */}
       <Dialog open={!!activeResetUser} onOpenChange={(open) => !open && setActiveResetUser(null)}>

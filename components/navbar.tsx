@@ -153,9 +153,11 @@ export function Navbar() {
           </Link>
 
           <Link
-            href={user.role === 'ADMIN' ? '/admin' : '/instructor'}
+            href="/instructors"
             className={`flex flex-col items-center justify-center flex-1 py-1 text-[11px] font-bold ${
-              isInstructorsActive ? 'text-sky-600' : 'text-slate-500 hover:text-slate-800'
+              pathname === '/instructors'
+                ? 'text-sky-600'
+                : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             <span className="text-base leading-none">👨‍🏫</span>
