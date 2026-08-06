@@ -43,52 +43,52 @@ export default function InstructorPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-8 space-y-6 max-w-6xl mx-auto">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-xl">
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-8 space-y-6 max-w-6xl mx-auto">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-sky-700 via-cyan-600 to-teal-600 p-6 sm:p-8 rounded-2xl text-white shadow-lg shadow-sky-600/15">
         <div>
-          <h1 className="text-2xl font-bold text-white">Instructor Dashboard</h1>
-          <p className="text-sm text-slate-400">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Instructor Dashboard</h1>
+          <p className="text-sm text-sky-100 mt-1 font-medium">
             Active Divemaster candidates, pending sign-offs, and progress tracking
           </p>
         </div>
         <div className="flex gap-3">
           <Link href="/instructor/inbox">
-            <Button className="bg-blue-600 hover:bg-blue-500 text-white font-semibold">
+            <Button className="bg-white text-sky-800 hover:bg-sky-50 font-bold shadow-sm">
               Go to Full Inbox
             </Button>
           </Link>
         </div>
       </div>
 
-      <Card className="border-slate-800 bg-slate-900">
+      <Card className="border border-slate-200/80 bg-white shadow-xs">
         <CardHeader>
-          <CardTitle className="text-lg font-bold text-white">Active Candidates</CardTitle>
-          <CardDescription className="text-slate-400 text-sm">
-            Click on any candidate to view their evaluation page and approve pending requests
+          <CardTitle className="text-lg font-bold text-slate-800">Active Candidates Roster</CardTitle>
+          <CardDescription className="text-slate-500 text-sm">
+            Click on any candidate to view their evaluation dashboard and evaluate pending requests
           </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="py-8 text-center text-slate-400">Loading candidate list...</div>
+            <div className="py-12 text-center text-slate-500 font-medium">Loading candidate roster...</div>
           ) : candidates.length === 0 ? (
-            <div className="py-8 text-center text-slate-400">No active candidates found.</div>
+            <div className="py-12 text-center text-slate-500 font-medium">No active DMT candidates found.</div>
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="border-slate-800 hover:bg-transparent">
-                  <TableHead className="text-slate-300">Candidate</TableHead>
-                  <TableHead className="text-slate-300">Status</TableHead>
-                  <TableHead className="text-slate-300">Pending Requests</TableHead>
-                  <TableHead className="text-slate-300">Approved Units</TableHead>
-                  <TableHead className="text-slate-300">Overall Progress</TableHead>
-                  <TableHead className="text-right text-slate-300">Action</TableHead>
+                <TableRow className="border-slate-200 hover:bg-transparent">
+                  <TableHead className="text-slate-700 font-bold">Candidate</TableHead>
+                  <TableHead className="text-slate-700 font-bold">Status</TableHead>
+                  <TableHead className="text-slate-700 font-bold">Pending Requests</TableHead>
+                  <TableHead className="text-slate-700 font-bold">Approved Units</TableHead>
+                  <TableHead className="text-slate-700 font-bold">Overall Progress</TableHead>
+                  <TableHead className="text-right text-slate-700 font-bold">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {candidates.map((cand) => (
-                  <TableRow key={cand.studentId} className="border-slate-800 hover:bg-slate-950/80 transition-colors">
-                    <TableCell className="font-semibold text-slate-100">
-                      <Link href={`/instructor/candidates/${cand.studentId}`} className="text-base text-blue-400 hover:underline">
+                  <TableRow key={cand.studentId} className="border-slate-200 hover:bg-sky-50/40 transition-colors">
+                    <TableCell className="font-bold text-slate-800">
+                      <Link href={`/instructor/candidates/${cand.studentId}`} className="text-base text-sky-700 hover:text-sky-800 hover:underline">
                         {cand.studentName}
                       </Link>
                       <div className="text-xs text-slate-500 font-normal">{cand.email}</div>
@@ -96,11 +96,11 @@ export default function InstructorPage() {
 
                     <TableCell>
                       {cand.status === 'COMPLETE' ? (
-                        <Badge className="bg-green-600/20 text-green-300 border border-green-500/30">
+                        <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-300 font-semibold">
                           COMPLETE
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="border-blue-500/40 text-blue-300">
+                        <Badge variant="outline" className="border-sky-300 bg-sky-50 text-sky-700 font-semibold">
                           IN TRAINING
                         </Badge>
                       )}
@@ -109,29 +109,29 @@ export default function InstructorPage() {
                     <TableCell>
                       {cand.pendingCount > 0 ? (
                         <Link href={`/instructor/candidates/${cand.studentId}`}>
-                          <Badge className="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs px-2.5 py-1 font-semibold cursor-pointer hover:bg-amber-500/30">
+                          <Badge className="bg-amber-100 text-amber-800 border border-amber-300 text-xs px-2.5 py-1 font-bold cursor-pointer hover:bg-amber-200">
                             {cand.pendingCount} Pending
                           </Badge>
                         </Link>
                       ) : (
-                        <span className="text-xs text-slate-500 italic">None</span>
+                        <span className="text-xs text-slate-400 italic">None</span>
                       )}
                     </TableCell>
 
-                    <TableCell className="font-mono text-slate-300">
+                    <TableCell className="font-mono font-bold text-slate-700">
                       {cand.approvedUnits} / 53
                     </TableCell>
 
                     <TableCell className="w-44">
                       <div className="space-y-1">
-                        <div className="text-xs text-slate-400 font-mono text-right">{cand.percentComplete}%</div>
-                        <Progress value={cand.percentComplete} className="h-2 bg-slate-950" />
+                        <div className="text-xs text-slate-600 font-mono font-bold text-right">{cand.percentComplete}%</div>
+                        <Progress value={cand.percentComplete} className="h-2 bg-slate-100" />
                       </div>
                     </TableCell>
 
                     <TableCell className="text-right">
                       <Link href={`/instructor/candidates/${cand.studentId}`}>
-                        <Button size="sm" variant="outline" className="border-slate-800 text-slate-300 hover:bg-slate-800">
+                        <Button size="sm" variant="outline" className="border-slate-300 text-slate-700 hover:bg-slate-100 font-medium">
                           Review Candidate
                         </Button>
                       </Link>

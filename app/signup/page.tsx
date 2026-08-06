@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -11,8 +10,6 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function SignupPage() {
-  const router = useRouter();
-
   // Name & Auth
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -80,8 +77,7 @@ export default function SignupPage() {
         return;
       }
 
-      router.push('/dashboard');
-      router.refresh();
+      window.location.href = '/dashboard';
     } catch {
       setErrorMsg('Registration failed');
       setIsLoading(false);
@@ -89,16 +85,16 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 px-4 py-8 text-slate-100 flex items-center justify-center">
-      <Card className="w-full max-w-2xl border-slate-800 bg-slate-900/90 shadow-2xl backdrop-blur-sm">
-        <CardHeader className="text-center space-y-2 pb-6 border-b border-slate-800">
-          <div className="mx-auto w-12 h-12 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-400 mb-2 border border-blue-500/30 font-bold text-lg">
+    <div className="min-h-screen bg-gradient-to-br from-sky-100 via-slate-50 to-teal-50 px-4 py-8 text-slate-900 flex items-center justify-center">
+      <Card className="w-full max-w-2xl border border-slate-200/90 bg-white/95 shadow-2xl backdrop-blur-md rounded-2xl">
+        <CardHeader className="text-center space-y-2 pb-6 border-b border-slate-100">
+          <div className="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 flex items-center justify-center text-white mb-2 shadow-md shadow-sky-500/20 font-extrabold text-xl">
             DM
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight text-white">
+          <CardTitle className="text-2xl font-extrabold tracking-tight text-slate-900">
             PADI DMT Registration
           </CardTitle>
-          <CardDescription className="text-slate-400 text-sm">
+          <CardDescription className="text-slate-500 text-sm font-medium">
             Candidate Information and Evaluation Form Registration
           </CardDescription>
         </CardHeader>
@@ -106,7 +102,7 @@ export default function SignupPage() {
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {errorMsg && (
-              <Alert variant="destructive" className="border-red-900/50 bg-red-950/50 text-red-200 text-sm">
+              <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-800 text-sm">
                 <AlertTitle>Error</AlertTitle>
                 <AlertDescription>{errorMsg}</AlertDescription>
               </Alert>
@@ -114,25 +110,25 @@ export default function SignupPage() {
 
             {/* Section 1: Account Credentials */}
             <div className="space-y-3">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-blue-400 border-b border-slate-800/80 pb-1">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-sky-700 border-b border-slate-200 pb-1">
                 Account Credentials
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="email" className="text-slate-200 text-xs">Email Address *</Label>
+                  <Label htmlFor="email" className="text-slate-700 text-xs font-semibold">Email Address *</Label>
                   <Input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="dmt@example.com"
+                    placeholder="dmt@diveshop.com"
                     required
-                    className="bg-slate-950 border-slate-800 text-slate-100 h-10"
+                    className="bg-white border-slate-300 text-slate-900 h-10"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="password" className="text-slate-200 text-xs">Password *</Label>
+                  <Label htmlFor="password" className="text-slate-700 text-xs font-semibold">Password *</Label>
                   <Input
                     id="password"
                     type="password"
@@ -141,7 +137,7 @@ export default function SignupPage() {
                     placeholder="••••••••"
                     required
                     minLength={6}
-                    className="bg-slate-950 border-slate-800 text-slate-100 h-10"
+                    className="bg-white border-slate-300 text-slate-900 h-10"
                   />
                 </div>
               </div>
@@ -149,148 +145,145 @@ export default function SignupPage() {
 
             {/* Section 2: Personal Name */}
             <div className="space-y-3">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-blue-400 border-b border-slate-800/80 pb-1">
-                Personal Name
+              <h3 className="text-xs font-bold uppercase tracking-wider text-sky-700 border-b border-slate-200 pb-1">
+                Personal Information
               </h3>
               <div className="grid grid-cols-5 gap-3">
                 <div className="col-span-2 space-y-1.5">
-                  <Label htmlFor="first-name" className="text-slate-200 text-xs">First Name *</Label>
+                  <Label htmlFor="first-name" className="text-slate-700 text-xs font-semibold">First Name *</Label>
                   <Input
                     id="first-name"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder="Alex"
                     required
-                    className="bg-slate-950 border-slate-800 text-slate-100 h-10"
+                    className="bg-white border-slate-300 text-slate-900 h-10"
                   />
                 </div>
 
                 <div className="col-span-2 space-y-1.5">
-                  <Label htmlFor="last-name" className="text-slate-200 text-xs">Last Name *</Label>
+                  <Label htmlFor="last-name" className="text-slate-700 text-xs font-semibold">Last Name *</Label>
                   <Input
                     id="last-name"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     placeholder="Smith"
                     required
-                    className="bg-slate-950 border-slate-800 text-slate-100 h-10"
+                    className="bg-white border-slate-300 text-slate-900 h-10"
                   />
                 </div>
 
                 <div className="col-span-1 space-y-1.5">
-                  <Label htmlFor="middle-initial" className="text-slate-200 text-xs">M.I.</Label>
+                  <Label htmlFor="middle-initial" className="text-slate-700 text-xs font-semibold">M.I.</Label>
                   <Input
                     id="middle-initial"
                     value={middleInitial}
                     onChange={(e) => setMiddleInitial(e.target.value)}
                     placeholder="J"
                     maxLength={2}
-                    className="bg-slate-950 border-slate-800 text-slate-100 h-10 text-center uppercase"
+                    className="bg-white border-slate-300 text-slate-900 h-10 text-center"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Section 3: Contact & Demographics */}
+            {/* Section 3: Contact Details & Birth Date */}
             <div className="space-y-3">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-blue-400 border-b border-slate-800/80 pb-1">
-                Contact & Demographics
-              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="phone" className="text-slate-200 text-xs">Mobile Phone</Label>
+                  <Label htmlFor="phone" className="text-slate-700 text-xs font-semibold">Mobile Phone</Label>
                   <Input
                     id="phone"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="(555) 000-0000"
-                    className="bg-slate-950 border-slate-800 text-slate-100 h-10"
+                    className="bg-white border-slate-300 text-slate-900 h-10"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="home-phone" className="text-slate-200 text-xs">Home Phone</Label>
+                  <Label htmlFor="home-phone" className="text-slate-700 text-xs font-semibold">Home Phone</Label>
                   <Input
                     id="home-phone"
                     value={homePhone}
                     onChange={(e) => setHomePhone(e.target.value)}
                     placeholder="(555) 000-0000"
-                    className="bg-slate-950 border-slate-800 text-slate-100 h-10"
+                    className="bg-white border-slate-300 text-slate-900 h-10"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="birth-date" className="text-slate-200 text-xs">Birth Date</Label>
+                  <Label htmlFor="birth-date" className="text-slate-700 text-xs font-semibold">Birth Date</Label>
                   <Input
                     id="birth-date"
                     type="date"
                     value={birthDate}
                     onChange={(e) => setBirthDate(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-slate-100 h-10"
+                    className="bg-white border-slate-300 text-slate-900 h-10"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Section 4: Address Information */}
+            {/* Section 4: Address */}
             <div className="space-y-3">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-blue-400 border-b border-slate-800/80 pb-1">
-                Mailing Address
+              <h3 className="text-xs font-bold uppercase tracking-wider text-sky-700 border-b border-slate-200 pb-1">
+                Residential Address
               </h3>
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="address-line" className="text-slate-200 text-xs">Street Address</Label>
+                  <Label htmlFor="address" className="text-slate-700 text-xs font-semibold">Street Address</Label>
                   <Input
-                    id="address-line"
+                    id="address"
                     value={addressLine}
                     onChange={(e) => setAddressLine(e.target.value)}
                     placeholder="123 Ocean Drive"
-                    className="bg-slate-950 border-slate-800 text-slate-100 h-10"
+                    className="bg-white border-slate-300 text-slate-900 h-10"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="city" className="text-slate-200 text-xs">City</Label>
+                    <Label htmlFor="city" className="text-slate-700 text-xs font-semibold">City</Label>
                     <Input
                       id="city"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      placeholder="Miami"
-                      className="bg-slate-950 border-slate-800 text-slate-100 h-10"
+                      placeholder="Key West"
+                      className="bg-white border-slate-300 text-slate-900 h-10"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="state" className="text-slate-200 text-xs">State/Province</Label>
+                    <Label htmlFor="state" className="text-slate-700 text-xs font-semibold">State / Prov</Label>
                     <Input
                       id="state"
                       value={stateProvince}
                       onChange={(e) => setStateProvince(e.target.value)}
                       placeholder="FL"
-                      className="bg-slate-950 border-slate-800 text-slate-100 h-10"
+                      className="bg-white border-slate-300 text-slate-900 h-10"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="country" className="text-slate-200 text-xs">Country</Label>
+                    <Label htmlFor="country" className="text-slate-700 text-xs font-semibold">Country</Label>
                     <Input
                       id="country"
                       value={country}
                       onChange={(e) => setCountry(e.target.value)}
                       placeholder="USA"
-                      className="bg-slate-950 border-slate-800 text-slate-100 h-10"
+                      className="bg-white border-slate-300 text-slate-900 h-10"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="postal-code" className="text-slate-200 text-xs">Zip/Postal Code</Label>
+                    <Label htmlFor="postal" className="text-slate-700 text-xs font-semibold">Zip / Postal Code</Label>
                     <Input
-                      id="postal-code"
+                      id="postal"
                       value={postalCode}
                       onChange={(e) => setPostalCode(e.target.value)}
-                      placeholder="33101"
-                      className="bg-slate-950 border-slate-800 text-slate-100 h-10"
+                      placeholder="33040"
+                      className="bg-white border-slate-300 text-slate-900 h-10"
                     />
                   </div>
                 </div>
@@ -299,29 +292,29 @@ export default function SignupPage() {
 
             {/* Section 5: Emergency Contact */}
             <div className="space-y-3">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-blue-400 border-b border-slate-800/80 pb-1">
-                Emergency Contact Details
+              <h3 className="text-xs font-bold uppercase tracking-wider text-sky-700 border-b border-slate-200 pb-1">
+                Emergency Contact
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="emerg-contact" className="text-slate-200 text-xs">Emergency Contact Name</Label>
+                  <Label htmlFor="emergency-contact" className="text-slate-700 text-xs font-semibold">Contact Name</Label>
                   <Input
-                    id="emerg-contact"
+                    id="emergency-contact"
                     value={emergencyContact}
                     onChange={(e) => setEmergencyContact(e.target.value)}
                     placeholder="Jane Smith"
-                    className="bg-slate-950 border-slate-800 text-slate-100 h-10"
+                    className="bg-white border-slate-300 text-slate-900 h-10"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="emerg-phone" className="text-slate-200 text-xs">Emergency Contact Phone</Label>
+                  <Label htmlFor="emergency-phone" className="text-slate-700 text-xs font-semibold">Contact Telephone</Label>
                   <Input
-                    id="emerg-phone"
+                    id="emergency-phone"
                     value={emergencyPhone}
                     onChange={(e) => setEmergencyPhone(e.target.value)}
                     placeholder="(555) 999-8888"
-                    className="bg-slate-950 border-slate-800 text-slate-100 h-10"
+                    className="bg-white border-slate-300 text-slate-900 h-10"
                   />
                 </div>
               </div>
@@ -330,18 +323,20 @@ export default function SignupPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-11 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-base shadow-lg mt-4"
+              className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold h-11 shadow-md shadow-sky-600/15 mt-4"
             >
-              {isLoading ? 'Creating Account...' : 'Complete DMT Registration'}
+              {isLoading ? 'Registering DMT Candidate...' : 'Submit DMT Registration'}
             </Button>
           </form>
         </CardContent>
 
-        <CardFooter className="flex justify-center border-t border-slate-800/80 pt-4 text-xs text-slate-400">
-          Already registered?{' '}
-          <Link href="/login" className="text-blue-400 font-semibold hover:underline ml-1">
-            Sign In
-          </Link>
+        <CardFooter className="flex justify-center pt-2 pb-6 border-t border-slate-100">
+          <p className="text-xs text-slate-500 font-medium">
+            Already registered?{' '}
+            <Link href="/login" className="text-sky-600 font-bold hover:underline">
+              Sign in to your account
+            </Link>
+          </p>
         </CardFooter>
       </Card>
     </div>

@@ -165,7 +165,6 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
       setSignatureData('');
     }
 
-    // Scroll down to evaluation section smoothly
     setTimeout(() => {
       evalSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
@@ -220,15 +219,15 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
   };
 
   if (isLoading) {
-    return <div className="p-8 text-center text-slate-400">Loading DMT evaluation details...</div>;
+    return <div className="p-12 text-center text-slate-500 font-medium">Loading DMT evaluation details...</div>;
   }
 
   if (!candidate) {
     return (
-      <div className="p-8 text-center text-slate-400 space-y-4">
-        <p>Candidate not found.</p>
+      <div className="p-12 text-center text-slate-600 space-y-4">
+        <p className="font-semibold text-lg">Candidate not found.</p>
         <Link href="/instructor">
-          <Button variant="outline" className="border-slate-800 text-slate-300">
+          <Button variant="outline" className="border-slate-300 text-slate-700">
             Back to Active Candidates
           </Button>
         </Link>
@@ -242,36 +241,36 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
   const percent = progress?.percentComplete || candidate.percentComplete || 0;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-8 space-y-6 max-w-5xl mx-auto">
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-8 space-y-6 max-w-6xl mx-auto">
       {/* Header Navigation & Candidate Info */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-blue-950 via-slate-900 to-slate-950 p-6 rounded-xl border border-blue-900/40 shadow-xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-sky-700 via-cyan-600 to-teal-600 p-6 sm:p-8 rounded-2xl text-white shadow-lg shadow-sky-600/15">
         <div>
           <div className="flex items-center gap-3">
             <Link href="/instructor">
-              <Button size="sm" variant="outline" className="border-slate-800 text-slate-400 hover:text-white">
+              <Button size="sm" variant="outline" className="border-white/30 text-white hover:bg-white/10 font-medium">
                 &larr; Back to Roster
               </Button>
             </Link>
-            <h1 className="text-2xl font-bold text-white">{candidate.studentName}</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold">{candidate.studentName}</h1>
           </div>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-sky-100 mt-1 font-medium">
             DMT Progress Dashboard • {candidate.email}
           </p>
         </div>
 
         <div className="flex items-center gap-3 w-full sm:w-auto">
           {candidate.status === 'COMPLETE' ? (
-            <Badge className="bg-green-600/20 text-green-300 border border-green-500/30">
+            <Badge className="bg-emerald-500 text-white font-bold px-3 py-1">
               COMPLETE
             </Badge>
           ) : (
-            <Badge variant="outline" className="border-blue-500/40 text-blue-300">
+            <Badge variant="outline" className="border-white/30 bg-white/15 text-white font-medium px-3 py-1">
               IN TRAINING
             </Badge>
           )}
           {candidate.courseId && (
             <a href={`/api/courses/${candidate.courseId}/pdf`} download>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white font-semibold">
+              <Button size="sm" className="bg-white text-sky-800 hover:bg-sky-50 font-bold shadow-sm">
                 Export Evaluation PDF
               </Button>
             </a>
@@ -279,65 +278,65 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
         </div>
       </div>
 
-      {/* KPI Cards (Matches DMT Dashboard) */}
+      {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card className="border-slate-800 bg-slate-900">
+        <Card className="border border-slate-200/80 bg-white shadow-xs">
           <CardHeader className="p-4 pb-2">
-            <CardDescription className="text-xs text-slate-400">Total Progress</CardDescription>
-            <CardTitle className="text-2xl font-bold text-white">{percent}%</CardTitle>
+            <CardDescription className="text-xs text-slate-500 font-medium">Total Progress</CardDescription>
+            <CardTitle className="text-3xl font-extrabold text-sky-700">{percent}%</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <Progress value={percent} className="h-1.5 bg-slate-800" />
+            <Progress value={percent} className="h-2 bg-slate-100" />
           </CardContent>
         </Card>
 
-        <Card className="border-slate-800 bg-slate-900">
+        <Card className="border border-slate-200/80 bg-white shadow-xs">
           <CardHeader className="p-4 pb-2">
-            <CardDescription className="text-xs text-slate-400">Approved Units</CardDescription>
-            <CardTitle className="text-2xl font-bold text-green-400">{approved} / 53</CardTitle>
+            <CardDescription className="text-xs text-slate-500 font-medium">Approved Units</CardDescription>
+            <CardTitle className="text-3xl font-extrabold text-emerald-600">{approved} / 53</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <span className="text-xs text-slate-400">PADI Standards Satisfied</span>
+            <span className="text-xs text-slate-500">PADI Standards Satisfied</span>
           </CardContent>
         </Card>
 
-        <Card className="border-slate-800 bg-slate-900">
+        <Card className="border border-slate-200/80 bg-white shadow-xs">
           <CardHeader className="p-4 pb-2">
-            <CardDescription className="text-xs text-slate-400">Waiting Review</CardDescription>
-            <CardTitle className="text-2xl font-bold text-amber-400">{pending}</CardTitle>
+            <CardDescription className="text-xs text-slate-500 font-medium">Waiting Review</CardDescription>
+            <CardTitle className="text-3xl font-extrabold text-amber-600">{pending}</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <span className="text-xs text-slate-400">Pending Instructor Sign-off</span>
+            <span className="text-xs text-slate-500">Pending Sign-off</span>
           </CardContent>
         </Card>
 
-        <Card className="border-slate-800 bg-slate-900">
+        <Card className="border border-slate-200/80 bg-white shadow-xs">
           <CardHeader className="p-4 pb-2">
-            <CardDescription className="text-xs text-slate-400">Remaining Units</CardDescription>
-            <CardTitle className="text-2xl font-bold text-slate-300">{notStarted}</CardTitle>
+            <CardDescription className="text-xs text-slate-500 font-medium">Remaining Units</CardDescription>
+            <CardTitle className="text-3xl font-extrabold text-slate-600">{notStarted}</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <span className="text-xs text-slate-400">Not Yet Submitted</span>
+            <span className="text-xs text-slate-500">Not Yet Submitted</span>
           </CardContent>
         </Card>
       </div>
 
-      {/* Main Grid: Pie Chart & Interactive Section Breakdown */}
+      {/* Main Grid: Pie Chart & Section Breakdown */}
       <div className="grid gap-6 md:grid-cols-3">
-        <Card className="border-slate-800 bg-slate-900 md:col-span-1">
+        <Card className="border border-slate-200/80 bg-white shadow-xs md:col-span-1">
           <CardHeader>
-            <CardTitle className="text-base font-semibold text-white">Status Breakdown</CardTitle>
+            <CardTitle className="text-base font-bold text-slate-800">Status Breakdown</CardTitle>
           </CardHeader>
           <CardContent>
             <ProgressPie approved={approved} pending={pending} notStarted={notStarted} />
           </CardContent>
         </Card>
 
-        <Card className="border-slate-800 bg-slate-900 md:col-span-2">
+        <Card className="border border-slate-200/80 bg-white shadow-xs md:col-span-2">
           <CardHeader>
-            <CardTitle className="text-base font-semibold text-white">Progress by Section</CardTitle>
-            <CardDescription className="text-xs text-slate-400">
-              Click any section below to view items and candidate sign-off status
+            <CardTitle className="text-base font-bold text-slate-800">Progress by Section</CardTitle>
+            <CardDescription className="text-xs text-slate-500">
+              Click any section below to view candidate sign-off status
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -349,37 +348,37 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
               return (
                 <div
                   key={sec.sectionId}
-                  className="rounded-lg border border-slate-800 bg-slate-950/60 transition-all overflow-hidden"
+                  className="rounded-xl border border-slate-200 bg-slate-50/50 transition-all overflow-hidden"
                 >
                   {/* Clickable Header Row */}
                   <div
                     onClick={() => setExpandedSectionId(isExpanded ? null : sec.sectionId)}
-                    className="p-3.5 cursor-pointer hover:bg-slate-800/50 transition-colors space-y-2"
+                    className="p-3.5 cursor-pointer hover:bg-sky-50/60 transition-colors space-y-2"
                   >
                     <div className="flex justify-between items-center text-xs">
                       <div className="flex items-center gap-2">
-                        <span className="text-blue-400 font-mono">{isExpanded ? '▲' : '▼'}</span>
-                        <span className="font-semibold text-slate-100 text-sm">{sec.title}</span>
+                        <span className="text-sky-600 font-bold text-sm">{isExpanded ? '▲' : '▼'}</span>
+                        <span className="font-bold text-slate-800 text-sm">{sec.title}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         {sec.pendingUnits > 0 && (
-                          <Badge variant="outline" className="border-amber-500/50 bg-amber-950/40 text-amber-300 text-[10px]">
+                          <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-800 text-[10px] font-semibold">
                             {sec.pendingUnits} pending
                           </Badge>
                         )}
-                        <span className="text-slate-400 font-mono text-xs">
+                        <span className="text-slate-600 font-mono text-xs font-semibold">
                           {sec.approvedUnits} / {sec.totalUnits} units ({secPercent}%)
                         </span>
                       </div>
                     </div>
-                    <Progress value={secPercent} className="h-1.5 bg-slate-900" />
+                    <Progress value={secPercent} className="h-2 bg-slate-200" />
                   </div>
 
                   {/* Expanded Items List */}
                   {isExpanded && (
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      className="border-t border-slate-800 bg-slate-900/90 p-3 space-y-2"
+                      className="border-t border-slate-200 bg-white p-3 space-y-2"
                     >
                       {!secData || !secData.items || secData.items.length === 0 ? (
                         <div className="text-xs text-slate-500 italic py-2 text-center">No requirement items in this section.</div>
@@ -390,26 +389,26 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
                           return (
                             <div
                               key={item.id}
-                              className="p-2.5 bg-slate-950/80 rounded border border-slate-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs"
+                              className="p-3 bg-slate-50/80 rounded-lg border border-slate-200/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs"
                             >
                               <div>
-                                <div className="font-medium text-slate-200">{item.title}</div>
-                                <div className="text-[11px] text-slate-400 mt-0.5">
+                                <div className="font-bold text-slate-800">{item.title}</div>
+                                <div className="text-[11px] text-slate-500 mt-0.5">
                                   Required count: {item.requiredCount} {item.requiredCount > 1 ? `(${item.approvedCount}/${item.requiredCount} approved)` : ''}
                                 </div>
                               </div>
 
                               <div className="flex items-center gap-2 self-end sm:self-auto">
                                 {item.status === 'APPROVED' ? (
-                                  <Badge className="bg-green-600/20 text-green-300 border border-green-500/30 text-[10px]">
-                                    APPROVED
+                                  <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-300 text-[10px] font-semibold">
+                                    ✓ APPROVED
                                   </Badge>
                                 ) : item.status === 'PENDING' ? (
-                                  <Badge className="bg-amber-600/20 text-amber-300 border border-amber-500/30 text-[10px]">
-                                    PENDING
+                                  <Badge className="bg-amber-50 text-amber-700 border border-amber-300 text-[10px] font-semibold">
+                                    ⏳ PENDING
                                   </Badge>
                                 ) : (
-                                  <Badge variant="outline" className="border-slate-700 text-slate-400 text-[10px]">
+                                  <Badge variant="outline" className="border-slate-300 text-slate-500 text-[10px]">
                                     NOT STARTED
                                   </Badge>
                                 )}
@@ -421,7 +420,7 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
                                       e.stopPropagation();
                                       startEvaluation(pendingForThisItem);
                                     }}
-                                    className="h-7 text-[11px] bg-blue-600 hover:bg-blue-500 text-white font-semibold"
+                                    className="h-7 text-[11px] bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-2xs"
                                   >
                                     Evaluate & Sign
                                   </Button>
@@ -443,16 +442,16 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
       {/* Pending Sign-off Requests Area */}
       <div ref={evalSectionRef} className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-lg font-bold text-white">
+          <h2 className="text-lg font-bold text-slate-800">
             Pending Sign-off Requests ({candidate.pendingCount})
           </h2>
-          <Badge className="bg-amber-500/20 text-amber-300 border border-amber-500/40">
+          <Badge className="bg-amber-100 text-amber-800 border border-amber-300 font-bold">
             {candidate.pendingCount} Awaiting Review
           </Badge>
         </div>
 
         {candidate.pendingCount === 0 ? (
-          <Card className="border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
+          <Card className="border border-slate-200/80 bg-white p-8 text-center text-slate-500 shadow-xs">
             No pending sign-off requests awaiting review for this candidate.
           </Card>
         ) : (
@@ -463,35 +462,35 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
               return (
                 <Card
                   key={req.requestId}
-                  className={`border-slate-800 bg-slate-900 transition-all ${
-                    isEvaluatingThis ? 'ring-2 ring-blue-500 border-blue-900' : ''
+                  className={`border transition-all shadow-xs bg-white ${
+                    isEvaluatingThis ? 'ring-2 ring-sky-500 border-sky-300 shadow-md' : 'border-slate-200/80'
                   }`}
                 >
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pb-3 bg-slate-50/50 border-b border-slate-100 rounded-t-xl">
                     <div className="flex justify-between items-start">
-                      <Badge variant="outline" className="border-amber-500/50 bg-amber-950/40 text-amber-300">
+                      <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-800 font-semibold">
                         PENDING EVALUATION
                       </Badge>
-                      <span className="text-xs text-slate-400 font-mono">Attempt {req.attemptNumber}</span>
+                      <span className="text-xs text-slate-500 font-mono">Attempt {req.attemptNumber}</span>
                     </div>
-                    <CardTitle className="text-lg font-bold text-white pt-1">{req.title}</CardTitle>
-                    <CardDescription className="text-slate-400 text-xs">
+                    <CardTitle className="text-lg font-bold text-slate-800 pt-1">{req.title}</CardTitle>
+                    <CardDescription className="text-slate-500 text-xs">
                       Performed Date: {new Date(req.performedAt).toLocaleDateString()}
                     </CardDescription>
                   </CardHeader>
 
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-3 pt-4">
                     {req.studentNote && (
-                      <div className="bg-slate-950/60 p-3 rounded border border-slate-800 italic text-slate-300 text-xs">
+                      <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80 italic text-slate-700 text-xs">
                         DMT Note: &quot;{req.studentNote}&quot;
                       </div>
                     )}
 
                     {/* Embedded Inline Evaluation Form */}
                     {isEvaluatingThis && (
-                      <div className="mt-4 pt-4 border-t border-slate-800 space-y-5 bg-slate-950/40 p-4 rounded-lg">
+                      <div className="mt-4 pt-4 border-t border-slate-200 space-y-5 bg-sky-50/40 p-4 rounded-xl">
                         {errorMsg && (
-                          <Alert variant="destructive" className="border-red-900/50 bg-red-950/50 text-red-200 text-sm">
+                          <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-800 text-sm">
                             <AlertTitle>Error</AlertTitle>
                             <AlertDescription>{errorMsg}</AlertDescription>
                           </Alert>
@@ -499,7 +498,7 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
 
                         {req.scoring === 'SCORE_1_5' && (
                           <div className="space-y-2">
-                            <Label className="text-slate-200 text-sm font-medium">Performance Score (1-5)</Label>
+                            <Label className="text-slate-800 text-sm font-semibold">Performance Score (1-5)</Label>
                             <div className="flex gap-2">
                               {[1, 2, 3, 4, 5].map((scoreVal) => (
                                 <Button
@@ -508,8 +507,8 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
                                   variant={scoreInput === scoreVal ? 'default' : 'outline'}
                                   className={
                                     scoreInput === scoreVal
-                                      ? 'bg-blue-600 text-white font-bold flex-1'
-                                      : 'border-slate-800 text-slate-300 flex-1'
+                                      ? 'bg-sky-600 text-white font-bold flex-1 shadow-xs'
+                                      : 'border-slate-300 text-slate-700 bg-white hover:bg-slate-100 flex-1'
                                   }
                                   onClick={() => setScoreInput(scoreVal)}
                                 >
@@ -521,7 +520,7 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
                         )}
 
                         <div className="space-y-2">
-                          <Label htmlFor="comment" className="text-slate-200 text-sm font-medium">
+                          <Label htmlFor="comment" className="text-slate-800 text-sm font-semibold">
                             Instructor Comment (optional)
                           </Label>
                           <Textarea
@@ -529,19 +528,19 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
                             placeholder="Feedback for candidate..."
                             value={commentInput}
                             onChange={(e) => setCommentInput(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-slate-100 min-h-[70px]"
+                            className="bg-white border-slate-300 text-slate-900 min-h-[70px]"
                           />
                         </div>
 
                         <div className="space-y-3">
                           <div className="flex justify-between items-center">
-                            <Label className="text-slate-200 text-sm font-medium">Instructor Signature *</Label>
+                            <Label className="text-slate-800 text-sm font-semibold">Instructor Signature *</Label>
                             {savedAdoptedSignature && (
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                className="text-xs text-blue-400 hover:text-blue-300 p-0 h-auto"
+                                className="text-xs text-sky-700 hover:text-sky-800 p-0 h-auto font-medium"
                                 onClick={() => setUseAdoptedSignature(!useAdoptedSignature)}
                               >
                                 {useAdoptedSignature ? 'Draw New Signature' : 'Use Adopted Signature'}
@@ -550,9 +549,9 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
                           </div>
 
                           {useAdoptedSignature && savedAdoptedSignature ? (
-                            <div className="p-3 border border-green-500/40 bg-green-950/20 rounded-lg space-y-2 text-center">
-                              <span className="text-xs text-green-300 font-medium block">✓ Adopted Signature Selected</span>
-                              <div className="bg-white p-2 rounded inline-block">
+                            <div className="p-3 border border-emerald-300 bg-emerald-50 rounded-lg space-y-2 text-center">
+                              <span className="text-xs text-emerald-800 font-bold block">✓ Adopted Signature Selected</span>
+                              <div className="bg-white p-2 rounded inline-block shadow-2xs border border-slate-200">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                   src={savedAdoptedSignature}
@@ -564,12 +563,12 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
                           ) : (
                             <div className="space-y-2">
                               <SignaturePad onSave={setSignatureData} />
-                              <label className="flex items-center gap-2 pt-1 text-xs text-slate-300 cursor-pointer">
+                              <label className="flex items-center gap-2 pt-1 text-xs text-slate-700 cursor-pointer font-medium">
                                 <input
                                   type="checkbox"
                                   checked={adoptSignatureCheckbox}
                                   onChange={(e) => setAdoptSignatureCheckbox(e.target.checked)}
-                                  className="rounded border-slate-700 bg-slate-950 text-blue-600 focus:ring-blue-500"
+                                  className="rounded border-slate-300 bg-white text-sky-600 focus:ring-sky-500"
                                 />
                                 <span>Adopt and save this signature for future quick sign-offs</span>
                               </label>
@@ -580,14 +579,14 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
                     )}
                   </CardContent>
 
-                  <CardFooter className="pt-2 flex justify-end gap-3">
+                  <CardFooter className="pt-2 flex justify-end gap-3 pb-4">
                     {isEvaluatingThis ? (
                       <>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setActiveReq(null)}
-                          className="border-slate-800 text-slate-300"
+                          className="border-slate-300 text-slate-600 hover:bg-slate-100"
                         >
                           Cancel
                         </Button>
@@ -595,7 +594,7 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
                           size="sm"
                           disabled={isSubmitting || !signatureData}
                           onClick={handleApprove}
-                          className="bg-green-600 hover:bg-green-500 text-white font-semibold"
+                          className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-xs"
                         >
                           {isSubmitting ? 'Approving...' : 'Confirm & Sign'}
                         </Button>
@@ -604,7 +603,7 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
                       <Button
                         size="sm"
                         onClick={() => startEvaluation(req)}
-                        className="bg-blue-600 hover:bg-blue-500 text-white font-semibold"
+                        className="bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-xs"
                       >
                         Evaluate & Sign
                       </Button>

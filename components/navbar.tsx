@@ -31,7 +31,7 @@ export function Navbar() {
         } else {
           setUser(null);
         }
-      } catch (err) {
+      } catch {
         setUser(null);
       }
     }
@@ -48,8 +48,7 @@ export function Navbar() {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
       setUser(null);
-      router.push('/login');
-      router.refresh();
+      window.location.href = '/login';
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
@@ -57,7 +56,7 @@ export function Navbar() {
     }
   };
 
-  if (pathname === '/login') {
+  if (pathname === '/login' || pathname === '/signup') {
     return null;
   }
 
@@ -69,19 +68,19 @@ export function Navbar() {
       : '/dashboard';
 
   return (
-    <header className="bg-slate-900/90 backdrop-blur border-b border-slate-800 sticky top-0 z-40">
+    <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 shadow-xs">
       <div className="max-w-6xl mx-auto px-4 sm:px-8 h-16 flex justify-between items-center">
         {/* Brand Title & Home Link */}
         <Link href={homeHref} className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white shadow-md">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 flex items-center justify-center font-extrabold text-white shadow-sm shadow-sky-500/20">
             DM
           </div>
           <div>
-            <span className="font-bold text-white text-base sm:text-lg tracking-tight block leading-none">
+            <span className="font-extrabold text-slate-900 text-base sm:text-lg tracking-tight block leading-none">
               PADI Divemaster
             </span>
-            <span className="text-[10px] text-blue-400 font-semibold tracking-wider uppercase">
-              Candidate Progress
+            <span className="text-[11px] text-sky-600 font-semibold tracking-wider uppercase">
+              Candidate Evaluation
             </span>
           </div>
         </Link>
@@ -90,21 +89,21 @@ export function Navbar() {
         <div className="flex items-center gap-3">
           {user && (
             <div className="flex flex-col items-end">
-              <span className="text-sm font-semibold text-white leading-snug">
+              <span className="text-xs sm:text-sm font-bold text-slate-800 leading-tight">
                 {user.firstName} {user.lastName}
               </span>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 mt-0.5">
                 <Badge
                   variant="outline"
                   className={
                     user.role === 'INSTRUCTOR'
-                      ? 'border-blue-500/50 bg-blue-950/40 text-blue-300 text-[10px] py-0 px-1.5'
+                      ? 'border-indigo-200 bg-indigo-50 text-indigo-700 text-[10px] py-0 px-2 font-medium'
                       : user.role === 'ADMIN'
-                      ? 'border-purple-500/50 bg-purple-950/40 text-purple-300 text-[10px] py-0 px-1.5'
-                      : 'border-green-500/50 bg-green-950/40 text-green-300 text-[10px] py-0 px-1.5'
+                      ? 'border-purple-200 bg-purple-50 text-purple-700 text-[10px] py-0 px-2 font-medium'
+                      : 'border-sky-200 bg-sky-50 text-sky-700 text-[10px] py-0 px-2 font-medium'
                   }
                 >
-                  {user.role === 'STUDENT' ? 'DMT' : user.role} {user.padiNumber ? `(${user.padiNumber})` : ''}
+                  {user.role === 'STUDENT' ? 'DMT Candidate' : user.role} {user.padiNumber ? `(${user.padiNumber})` : ''}
                 </Badge>
               </div>
             </div>
@@ -116,7 +115,7 @@ export function Navbar() {
               variant="outline"
               disabled={isLoggingOut}
               onClick={handleLogout}
-              className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white text-xs h-9"
+              className="border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900 text-xs h-8 font-medium shadow-2xs"
             >
               {isLoggingOut ? 'Logging Off...' : 'Log Off'}
             </Button>

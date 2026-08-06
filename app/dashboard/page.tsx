@@ -154,7 +154,7 @@ export default function DashboardPage() {
   };
 
   if (isLoading) {
-    return <div className="p-8 text-center text-slate-400">Loading student progress...</div>;
+    return <div className="p-12 text-center text-slate-500 font-medium">Loading candidate progress dashboard...</div>;
   }
 
   const approved = progress?.approvedUnits || 0;
@@ -168,47 +168,43 @@ export default function DashboardPage() {
     : undefined;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-8 space-y-6 max-w-5xl mx-auto">
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-8 space-y-6 max-w-6xl mx-auto">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-blue-950 via-slate-900 to-slate-950 p-6 rounded-xl border border-blue-900/40 shadow-xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-sky-700 via-cyan-600 to-teal-600 p-6 sm:p-8 rounded-2xl text-white shadow-lg shadow-sky-600/15">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">
-            Welcome, {user?.firstName || 'Candidate'}!
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            Welcome, {user?.firstName || 'DMT Candidate'}!
           </h1>
-          <div className="flex items-center gap-2 mt-1">
-            <p className="text-sm text-slate-400">
-              PADI Divemaster Evaluation Progress
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            <p className="text-sm text-sky-100 font-medium">
+              PADI Divemaster Candidate Evaluation Record
             </p>
             {mentor ? (
-              <Badge variant="outline" className="border-blue-500/40 bg-blue-950/60 text-blue-300 text-xs">
+              <Badge variant="outline" className="border-white/30 bg-white/15 text-white text-xs backdrop-blur-xs">
                 Mentor: {mentor.firstName} {mentor.lastName} {mentor.padiNumber ? `(${mentor.padiNumber})` : ''}
               </Badge>
             ) : (
-              <Badge variant="outline" className="border-amber-500/50 bg-amber-950/40 text-amber-300 text-xs cursor-pointer" onClick={() => setShowMentorModal(true)}>
-                + Assign Mentor
+              <Badge variant="outline" className="border-amber-300/60 bg-amber-500/20 text-amber-100 text-xs cursor-pointer hover:bg-amber-500/30" onClick={() => setShowMentorModal(true)}>
+                + Select Mentor Instructor
               </Badge>
             )}
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+
+        <div className="flex flex-wrap gap-2.5 w-full sm:w-auto">
           <Link href="/dashboard/requests/new" className="w-full sm:w-auto">
-            <Button className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold">
-              + New Request
+            <Button className="w-full bg-white text-sky-800 hover:bg-sky-50 font-bold shadow-sm">
+              + Request Sign-off
             </Button>
           </Link>
           <Link href="/dashboard/requests" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full border-slate-800 text-slate-300">
+            <Button variant="outline" className="w-full border-white/40 text-white hover:bg-white/10 font-medium">
               My Requests
-            </Button>
-          </Link>
-          <Link href="/dashboard/requirements" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full border-slate-800 text-slate-300">
-              View Catalog
             </Button>
           </Link>
           {courseId && (
             <a href={`/api/courses/${courseId}/pdf`} download className="w-full sm:w-auto">
-              <Button variant="outline" className="w-full border-slate-800 text-slate-300">
+              <Button variant="outline" className="w-full border-white/40 text-white hover:bg-white/10 font-medium">
                 Export PDF
               </Button>
             </a>
@@ -218,63 +214,63 @@ export default function DashboardPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card className="border-slate-800 bg-slate-900">
+        <Card className="border border-slate-200/80 bg-white shadow-xs hover:shadow-md transition-shadow">
           <CardHeader className="p-4 pb-2">
-            <CardDescription className="text-xs text-slate-400">Total Progress</CardDescription>
-            <CardTitle className="text-2xl font-bold text-white">{percent}%</CardTitle>
+            <CardDescription className="text-xs text-slate-500 font-medium">Total Progress</CardDescription>
+            <CardTitle className="text-3xl font-extrabold text-sky-700">{percent}%</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <Progress value={percent} className="h-1.5 bg-slate-800" />
+            <Progress value={percent} className="h-2 bg-slate-100" />
           </CardContent>
         </Card>
 
-        <Card className="border-slate-800 bg-slate-900">
+        <Card className="border border-slate-200/80 bg-white shadow-xs hover:shadow-md transition-shadow">
           <CardHeader className="p-4 pb-2">
-            <CardDescription className="text-xs text-slate-400">Approved Units</CardDescription>
-            <CardTitle className="text-2xl font-bold text-green-400">{approved} / 53</CardTitle>
+            <CardDescription className="text-xs text-slate-500 font-medium">Approved Units</CardDescription>
+            <CardTitle className="text-3xl font-extrabold text-emerald-600">{approved} / 53</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <span className="text-xs text-slate-400">PADI Standards Satisfied</span>
+            <span className="text-xs text-slate-500">PADI Standards Satisfied</span>
           </CardContent>
         </Card>
 
-        <Card className="border-slate-800 bg-slate-900">
+        <Card className="border border-slate-200/80 bg-white shadow-xs hover:shadow-md transition-shadow">
           <CardHeader className="p-4 pb-2">
-            <CardDescription className="text-xs text-slate-400">Waiting Review</CardDescription>
-            <CardTitle className="text-2xl font-bold text-amber-400">{pending}</CardTitle>
+            <CardDescription className="text-xs text-slate-500 font-medium">Waiting Review</CardDescription>
+            <CardTitle className="text-3xl font-extrabold text-amber-600">{pending}</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <span className="text-xs text-slate-400">Instructor Review Pending</span>
+            <span className="text-xs text-slate-500">Instructor Review Pending</span>
           </CardContent>
         </Card>
 
-        <Card className="border-slate-800 bg-slate-900">
+        <Card className="border border-slate-200/80 bg-white shadow-xs hover:shadow-md transition-shadow">
           <CardHeader className="p-4 pb-2">
-            <CardDescription className="text-xs text-slate-400">Remaining Units</CardDescription>
-            <CardTitle className="text-2xl font-bold text-slate-300">{notStarted}</CardTitle>
+            <CardDescription className="text-xs text-slate-500 font-medium">Remaining Units</CardDescription>
+            <CardTitle className="text-3xl font-extrabold text-slate-600">{notStarted}</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <span className="text-xs text-slate-400">Not Yet Submitted</span>
+            <span className="text-xs text-slate-500">Not Yet Submitted</span>
           </CardContent>
         </Card>
       </div>
 
       {/* Main Grid: Pie Chart & Section Breakdown */}
       <div className="grid gap-6 md:grid-cols-3">
-        <Card className="border-slate-800 bg-slate-900 md:col-span-1">
+        <Card className="border border-slate-200/80 bg-white shadow-xs md:col-span-1">
           <CardHeader>
-            <CardTitle className="text-base font-semibold text-white">Status Breakdown</CardTitle>
+            <CardTitle className="text-base font-bold text-slate-800">Status Breakdown</CardTitle>
           </CardHeader>
           <CardContent>
             <ProgressPie approved={approved} pending={pending} notStarted={notStarted} />
           </CardContent>
         </Card>
 
-        <Card className="border-slate-800 bg-slate-900 md:col-span-2">
+        <Card className="border border-slate-200/80 bg-white shadow-xs md:col-span-2">
           <CardHeader>
-            <CardTitle className="text-base font-semibold text-white">Progress by Section</CardTitle>
-            <CardDescription className="text-xs text-slate-400">
-              Click any section below to view items and request sign-offs
+            <CardTitle className="text-base font-bold text-slate-800">Progress by Section</CardTitle>
+            <CardDescription className="text-xs text-slate-500">
+              Click any section below to expand requirement items and request sign-offs
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -286,69 +282,69 @@ export default function DashboardPage() {
               return (
                 <div
                   key={sec.sectionId}
-                  className="rounded-lg border border-slate-800 bg-slate-950/60 transition-all overflow-hidden"
+                  className="rounded-xl border border-slate-200 bg-slate-50/50 transition-all overflow-hidden"
                 >
                   {/* Clickable Header Row */}
                   <div
                     onClick={() => setExpandedSectionId(isExpanded ? null : sec.sectionId)}
-                    className="p-3.5 cursor-pointer hover:bg-slate-800/50 transition-colors space-y-2"
+                    className="p-3.5 cursor-pointer hover:bg-sky-50/60 transition-colors space-y-2"
                   >
                     <div className="flex justify-between items-center text-xs">
                       <div className="flex items-center gap-2">
-                        <span className="text-blue-400 font-mono">{isExpanded ? '▲' : '▼'}</span>
-                        <span className="font-semibold text-slate-100 text-sm">{sec.title}</span>
+                        <span className="text-sky-600 font-bold text-sm">{isExpanded ? '▲' : '▼'}</span>
+                        <span className="font-bold text-slate-800 text-sm">{sec.title}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         {sec.pendingUnits > 0 && (
-                          <Badge variant="outline" className="border-amber-500/50 bg-amber-950/40 text-amber-300 text-[10px]">
+                          <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-800 text-[10px] font-semibold">
                             {sec.pendingUnits} pending
                           </Badge>
                         )}
-                        <span className="text-slate-400 font-mono text-xs">
+                        <span className="text-slate-600 font-mono text-xs font-semibold">
                           {sec.approvedUnits} / {sec.totalUnits} units ({secPercent}%)
                         </span>
                       </div>
                     </div>
-                    <Progress value={secPercent} className="h-1.5 bg-slate-900" />
+                    <Progress value={secPercent} className="h-2 bg-slate-200" />
                   </div>
 
                   {/* Expanded Items List */}
                   {isExpanded && (
-                    <div className="border-t border-slate-800 bg-slate-900/90 p-3 space-y-2">
+                    <div className="border-t border-slate-200 bg-white p-3 space-y-2">
                       {!secData || !secData.items || secData.items.length === 0 ? (
                         <div className="text-xs text-slate-500 italic py-2 text-center">No requirement items in this section.</div>
                       ) : (
                         secData.items.map((item) => (
                           <div
                             key={item.id}
-                            className="p-2.5 bg-slate-950/80 rounded border border-slate-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs"
+                            className="p-3 bg-slate-50/80 rounded-lg border border-slate-200/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs"
                           >
                             <div>
-                              <div className="font-medium text-slate-200">{item.title}</div>
-                              <div className="text-[11px] text-slate-400 mt-0.5">
+                              <div className="font-bold text-slate-800">{item.title}</div>
+                              <div className="text-[11px] text-slate-500 mt-0.5">
                                 Required count: {item.requiredCount} {item.requiredCount > 1 ? `(${item.approvedCount}/${item.requiredCount} approved)` : ''}
                               </div>
                             </div>
 
                             <div className="flex items-center gap-2 self-end sm:self-auto">
                               {item.status === 'APPROVED' ? (
-                                <Badge className="bg-green-600/20 text-green-300 border border-green-500/30 text-[10px]">
-                                  APPROVED
+                                <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-300 text-[10px] font-semibold">
+                                  ✓ APPROVED
                                 </Badge>
                               ) : item.status === 'PENDING' ? (
-                                <Badge className="bg-amber-600/20 text-amber-300 border border-amber-500/30 text-[10px]">
-                                  PENDING
+                                <Badge className="bg-amber-50 text-amber-700 border border-amber-300 text-[10px] font-semibold">
+                                  ⏳ PENDING
                                 </Badge>
                               ) : (
-                                <Badge variant="outline" className="border-slate-700 text-slate-400 text-[10px]">
+                                <Badge variant="outline" className="border-slate-300 text-slate-500 text-[10px]">
                                   NOT STARTED
                                 </Badge>
                               )}
 
                               {item.status !== 'APPROVED' && (
                                 <Link href={`/dashboard/requests/new?itemId=${item.id}`}>
-                                  <Button size="sm" variant="outline" className="h-7 text-[11px] border-blue-500/50 text-blue-300 hover:bg-blue-950">
-                                    Request Sign-off
+                                  <Button size="sm" variant="outline" className="h-7 text-[11px] border-sky-300 text-sky-700 hover:bg-sky-50 font-semibold">
+                                    + Request Sign-off
                                   </Button>
                                 </Link>
                               )}
@@ -365,37 +361,37 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* First Login Mentor Selection Dialog */}
+      {/* Mentor Selection Modal */}
       <Dialog open={showMentorModal} onOpenChange={setShowMentorModal}>
-        <DialogContent className="border-slate-800 bg-slate-900 text-slate-100 max-w-md">
+        <DialogContent className="border-slate-200 bg-white text-slate-900 max-w-md shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-white">Select Your Mentor Instructor</DialogTitle>
-            <DialogDescription className="text-slate-400 text-sm">
-              Every PADI Divemaster candidate is assigned a Mentor Instructor responsible for reviewing prerequisites, administration, and overall progress.
+            <DialogTitle className="text-xl font-extrabold text-slate-900">Select Your Mentor Instructor</DialogTitle>
+            <DialogDescription className="text-slate-600 text-sm">
+              Every PADI Divemaster candidate is assigned a Mentor Instructor responsible for reviewing prerequisites and evaluating overall course progress.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             {mentorError && (
-              <Alert variant="destructive" className="border-red-900/50 bg-red-950/50 text-red-200 text-sm">
+              <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-800 text-sm">
                 <AlertTitle>Error</AlertTitle>
                 <AlertDescription>{mentorError}</AlertDescription>
               </Alert>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="mentor-select" className="text-slate-200 text-sm font-medium">
+              <Label htmlFor="mentor-select" className="text-slate-700 text-sm font-semibold">
                 Mentor Instructor *
               </Label>
               <Select value={selectedMentorId} onValueChange={(val) => setSelectedMentorId(val || '')}>
-                <SelectTrigger id="mentor-select" className="bg-slate-950 border-slate-800 text-slate-100 h-11 w-full">
+                <SelectTrigger id="mentor-select" className="bg-white border-slate-300 text-slate-800 h-11 w-full">
                   <SelectValue placeholder="Select your mentor instructor...">
                     {selectedInstLabel || undefined}
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-800 text-slate-100">
+                <SelectContent className="bg-white border-slate-200 text-slate-800">
                   {instructors.map((inst) => (
-                    <SelectItem key={inst.id} value={inst.id} className="focus:bg-slate-800 text-sm">
+                    <SelectItem key={inst.id} value={inst.id} className="focus:bg-slate-100 text-sm">
                       {inst.firstName} {inst.lastName} {inst.padiNumber ? `(${inst.padiNumber})` : ''}
                     </SelectItem>
                   ))}
@@ -408,7 +404,7 @@ export default function DashboardPage() {
             <Button
               disabled={isAssigningMentor || !selectedMentorId}
               onClick={handleAssignMentor}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold h-11"
+              className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold h-11 shadow-sm"
             >
               {isAssigningMentor ? 'Assigning Mentor...' : 'Confirm Mentor Selection'}
             </Button>
