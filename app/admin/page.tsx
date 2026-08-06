@@ -70,6 +70,12 @@ export default function AdminPage() {
   const [isSubmittingInst, setIsSubmittingInst] = useState(false);
   const [instError, setInstError] = useState<string | null>(null);
 
+  // Reset Password Modal State
+  const [activeResetUser, setActiveResetUser] = useState<{ id: string; name: string; email: string; role: string } | null>(null);
+  const [newPasswordInput, setNewPasswordInput] = useState('Password123!');
+  const [isSubmittingReset, setIsSubmittingReset] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+
   const [isLoading, setIsLoading] = useState(true);
 
   const loadAdminData = async () => {
@@ -147,6 +153,41 @@ export default function AdminPage() {
       setInstError('Failed to create instructor');
     } finally {
       setIsSubmittingInst(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeResetUser) return;
+    if (!newPasswordInput || newPasswordInput.length < 6) {
+      setResetError('New password must be at least 6 characters.');
+      return;
+    }
+
+    setIsSubmittingReset(true);
+    setResetError(null);
+
+    try {
+      const res = await fetch(`/api/users/${activeResetUser.id}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword: newPasswordInput }),
+      });
+
+      const body = await res.json();
+      if (!res.ok) {
+        setResetError(body.error?.message || 'Failed to reset password');
+        setIsSubmittingReset(false);
+        return;
+      }
+
+      alert(`Password for ${activeResetUser.name} was successfully reset!`);
+      setActiveResetUser(null);
+      setNewPasswordInput('Password123!');
+    } catch {
+      setResetError('Failed to reset password');
+    } finally {
+      setIsSubmittingReset(false);
     }
   };
 
@@ -255,7 +296,7 @@ export default function AdminPage() {
   const totalDeletedCount = candidates.filter((c) => c.isActive === false).length;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-8 space-y-6 max-w-6xl mx-auto">
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-8 space-y-6 max-w-6xl mx-auto pb-20 sm:pb-8">
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-sky-700 via-cyan-600 to-teal-600 p-6 sm:p-8 rounded-2xl text-white shadow-lg shadow-sky-600/15">
         <div>
@@ -360,7 +401,7 @@ export default function AdminPage() {
           <CardHeader>
             <CardTitle className="text-lg font-bold text-slate-800">Active DMT Candidates Roster</CardTitle>
             <CardDescription className="text-slate-500 text-sm">
-              Manage active candidates, inspect status reports, or move graduated students to the Archive tab
+              Manage active candidates, reset credentials, inspect status reports, or move graduated students to the Archive tab
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -421,6 +462,17 @@ export default function AdminPage() {
                               View Report
                             </Button>
                           </Link>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setActiveResetUser({ id: cand.studentId, name: cand.studentName, email: cand.email, role: 'DMT Candidate' });
+                              setResetError(null);
+                            }}
+                            className="border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-medium text-xs"
+                          >
+                            Reset Password
+                          </Button>
                           <Button
                             size="sm"
                             variant="outline"
@@ -509,6 +561,17 @@ export default function AdminPage() {
                               View Report
                             </Button>
                           </Link>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setActiveResetUser({ id: cand.studentId, name: cand.studentName, email: cand.email, role: 'DMT Candidate' });
+                              setResetError(null);
+                            }}
+                            className="border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-medium text-xs"
+                          >
+                            Reset Password
+                          </Button>
                           <Button
                             size="sm"
                             onClick={() => handleArchiveCandidate(cand.studentId, cand.studentName, false)}
@@ -627,7 +690,7 @@ export default function AdminPage() {
                     <TableHead className="text-slate-700 font-bold">Email</TableHead>
                     <TableHead className="text-slate-700 font-bold">PADI Pro #</TableHead>
                     <TableHead className="text-slate-700 font-bold">Status</TableHead>
-                    <TableHead className="text-right text-slate-700 font-bold">Action</TableHead>
+                    <TableHead className="text-right text-slate-700 font-bold">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -652,14 +715,27 @@ export default function AdminPage() {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteInstructor(inst.id)}
-                          className="border-red-200 text-red-700 hover:bg-red-50 font-medium"
-                        >
-                          Deactivate
-                        </Button>
+                        <div className="flex justify-end items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setActiveResetUser({ id: inst.id, name: `${inst.firstName} ${inst.lastName}`, email: inst.email, role: 'Staff Instructor' });
+                              setResetError(null);
+                            }}
+                            className="border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-medium text-xs"
+                          >
+                            Reset Password
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteInstructor(inst.id)}
+                            className="border-red-200 text-red-700 hover:bg-red-50 font-medium text-xs"
+                          >
+                            Deactivate
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -811,6 +887,65 @@ export default function AdminPage() {
                 className="bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-xs"
               >
                 {isSubmittingInst ? 'Creating Instructor...' : 'Create Instructor Account'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Modal */}
+      <Dialog open={!!activeResetUser} onOpenChange={(open) => !open && setActiveResetUser(null)}>
+        <DialogContent className="border-slate-200 bg-white text-slate-900 max-w-md shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-extrabold text-slate-900">Reset User Password</DialogTitle>
+            <DialogDescription className="text-slate-600 text-sm">
+              Enter a new password for {activeResetUser?.name} ({activeResetUser?.role}).
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleResetPassword} className="space-y-4 py-2">
+            {resetError && (
+              <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-800 text-sm">
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{resetError}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="space-y-1.5">
+              <Label className="text-slate-700 text-xs font-semibold">User Account</Label>
+              <div className="p-2.5 bg-slate-50 rounded border border-slate-200 text-sm font-bold text-slate-800">
+                {activeResetUser?.name} ({activeResetUser?.email})
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="new-password" className="text-slate-700 text-xs font-semibold">New Password *</Label>
+              <Input
+                id="new-password"
+                type="text"
+                value={newPasswordInput}
+                onChange={(e) => setNewPasswordInput(e.target.value)}
+                className="bg-white border-slate-300 text-slate-900 font-mono"
+                required
+                minLength={6}
+              />
+            </div>
+
+            <DialogFooter className="pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setActiveResetUser(null)}
+                className="border-slate-300 text-slate-600 hover:bg-slate-100"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmittingReset}
+                className="bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-xs"
+              >
+                {isSubmittingReset ? 'Resetting Password...' : 'Save New Password'}
               </Button>
             </DialogFooter>
           </form>
