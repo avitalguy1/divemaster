@@ -140,6 +140,7 @@ CREATE TABLE "signoff_scores" (
 --> statement-breakpoint
 CREATE TABLE "student_profiles" (
 	"user_id" uuid PRIMARY KEY NOT NULL,
+	"instructor_id" uuid,
 	"birth_date" timestamp,
 	"address_line" text,
 	"city" text,
@@ -191,6 +192,7 @@ ALTER TABLE "signoff_requests" ADD CONSTRAINT "signoff_requests_voided_by_users_
 ALTER TABLE "signoff_scores" ADD CONSTRAINT "signoff_scores_request_id_signoff_requests_id_fk" FOREIGN KEY ("request_id") REFERENCES "public"."signoff_requests"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "signoff_scores" ADD CONSTRAINT "signoff_scores_line_id_score_sheet_lines_id_fk" FOREIGN KEY ("line_id") REFERENCES "public"."score_sheet_lines"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "student_profiles" ADD CONSTRAINT "student_profiles_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "student_profiles" ADD CONSTRAINT "student_profiles_instructor_id_users_id_fk" FOREIGN KEY ("instructor_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_dive_center_id_dive_centers_id_fk" FOREIGN KEY ("dive_center_id") REFERENCES "public"."dive_centers"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "idx_audit_entity" ON "audit_log" USING btree ("entity","entity_id","created_at" DESC NULLS LAST);--> statement-breakpoint
 CREATE INDEX "idx_notifications_unread" ON "notifications" USING btree ("user_id","created_at" DESC NULLS LAST) WHERE read_at IS NULL;--> statement-breakpoint
