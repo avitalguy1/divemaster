@@ -44,12 +44,34 @@ interface SectionProgress {
   pendingUnits: number;
 }
 
+interface CatalogItem {
+  id: number;
+  sectionId: number;
+  code: string;
+  title: string;
+  scoring: string;
+  requiredCount: number;
+  status: 'APPROVED' | 'PENDING' | 'NOT_STARTED';
+  approvedCount: number;
+  pendingCount: number;
+}
+
+interface CatalogSectionItems {
+  id?: number;
+  sectionId?: number;
+  code: string;
+  title: string;
+  items: CatalogItem[];
+}
+
 export default function AdminCandidateReportPage({ params }: { params: Promise<{ studentId: string }> }) {
   const resolvedParams = use(params);
   const studentId = resolvedParams.studentId;
 
   const [candidate, setCandidate] = useState<CandidateOverview | null>(null);
   const [sections, setSections] = useState<SectionProgress[]>([]);
+  const [sectionItems, setSectionItems] = useState<CatalogSectionItems[]>([]);
+  const [expandedSectionId, setExpandedSectionId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Void modal state
@@ -68,10 +90,19 @@ export default function AdminCandidateReportPage({ params }: { params: Promise<{
         setCandidate(cand || null);
 
         if (cand?.courseId) {
-          const progRes = await fetch(`/api/courses/${cand.courseId}/progress`);
+          const [progRes, itemsRes] = await Promise.all([
+            fetch(`/api/courses/${cand.courseId}/progress`),
+            fetch(`/api/courses/${cand.courseId}/items`),
+          ]);
+
           if (progRes.ok) {
             const progData = await progRes.json();
             setSections(progData.progress?.sections || []);
+          }
+
+          if (itemsRes.ok) {
+            const itemsData = await itemsRes.json();
+            setSectionItems(itemsData.sections || []);
           }
         }
       }
@@ -236,23 +267,87 @@ export default function AdminCandidateReportPage({ params }: { params: Promise<{
         </Card>
       </div>
 
-      {/* Section Progress Breakdown Table */}
+      {/* Section Progress Breakdown Table (Clickable Accordion) */}
       <Card className="border border-slate-200/80 bg-white shadow-xs">
         <CardHeader>
           <CardTitle className="text-lg font-bold text-slate-800">Progress Breakdown by Catalog Section</CardTitle>
+          <CardDescription className="text-xs text-slate-500">
+            Click any section below to expand requirement items and inspect task details
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {sections.map((sec) => {
             const secPercent = sec.totalUnits > 0 ? Math.round((sec.approvedUnits / sec.totalUnits) * 100) : 0;
+            const isExpanded = expandedSectionId === sec.sectionId;
+            const secData = sectionItems.find((s: any) => (s.id ?? s.sectionId) === sec.sectionId);
+
             return (
-              <div key={sec.sectionId} className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="font-bold text-slate-800 text-sm">{sec.title}</span>
-                  <span className="text-slate-600 font-mono font-bold">
-                    {sec.approvedUnits} / {sec.totalUnits} units ({secPercent}%)
-                  </span>
+              <div
+                key={sec.sectionId}
+                className="rounded-xl border border-slate-200 bg-slate-50/50 transition-all overflow-hidden"
+              >
+                {/* Clickable Header Row */}
+                <div
+                  onClick={() => setExpandedSectionId(isExpanded ? null : sec.sectionId)}
+                  className="p-3.5 cursor-pointer hover:bg-sky-50/60 transition-colors space-y-2"
+                >
+                  <div className="flex justify-between items-center text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sky-600 font-bold text-sm">{isExpanded ? '▲' : '▼'}</span>
+                      <span className="font-bold text-slate-800 text-sm">{sec.title}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {sec.pendingUnits > 0 && (
+                        <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-800 text-[10px] font-semibold">
+                          {sec.pendingUnits} pending
+                        </Badge>
+                      )}
+                      <span className="text-slate-600 font-mono text-xs font-semibold">
+                        {sec.approvedUnits} / {sec.totalUnits} units ({secPercent}%)
+                      </span>
+                    </div>
+                  </div>
+                  <Progress value={secPercent} className="h-2 bg-slate-200" />
                 </div>
-                <Progress value={secPercent} className="h-2 bg-slate-200" />
+
+                {/* Expanded Items List */}
+                {isExpanded && (
+                  <div className="border-t border-slate-200 bg-white p-3 space-y-2">
+                    {!secData || !secData.items || secData.items.length === 0 ? (
+                      <div className="text-xs text-slate-500 italic py-2 text-center">No requirement items in this section.</div>
+                    ) : (
+                      secData.items.map((item) => (
+                        <div
+                          key={item.id}
+                          className="p-3 bg-slate-50/80 rounded-lg border border-slate-200/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs"
+                        >
+                          <div>
+                            <div className="font-bold text-slate-800">{item.title}</div>
+                            <div className="text-[11px] text-slate-500 mt-0.5">
+                              Required count: {item.requiredCount} {item.requiredCount > 1 ? `(${item.approvedCount}/${item.requiredCount} approved)` : ''}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 self-end sm:self-auto">
+                            {item.status === 'APPROVED' ? (
+                              <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-300 text-[10px] font-semibold">
+                                ✓ APPROVED
+                              </Badge>
+                            ) : item.status === 'PENDING' ? (
+                              <Badge className="bg-amber-50 text-amber-700 border border-amber-300 text-[10px] font-semibold">
+                                ⏳ PENDING
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="border-slate-300 text-slate-500 text-[10px]">
+                                NOT STARTED
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
