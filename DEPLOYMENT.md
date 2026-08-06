@@ -118,14 +118,15 @@ Save and exit (`Ctrl + O`, `Enter`, `Ctrl + X`).
 
 ## Step 5: Initialize Database Schema & Catalog Seed
 
-1. **Push Drizzle ORM Database Schema**:
+1. **Create All PostgreSQL Tables**:
    ```bash
-   pnpm drizzle-kit push
+   pnpm db:migrate
    ```
 
 2. **Seed PADI Catalog & Admin Account**:
    ```bash
    pnpm db:seed
+   pnpm db:fixtures
    ```
 
 ---
