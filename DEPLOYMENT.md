@@ -227,5 +227,28 @@ pnpm build
   pg_dump -U divemaster_user -d divemaster_prod -h 127.0.0.1 > /var/backups/divemaster_$(date +%F).sql
   ```
 
+## Troubleshooting 502 Bad Gateway Errors
+
+If Nginx outputs `502 Bad Gateway`, Nginx is active but cannot connect to Next.js on port 3000:
+
+1. **Check if PM2 Process is Running**:
+   ```bash
+   pm2 status
+   ```
+2. **View Error Logs**:
+   ```bash
+   pm2 logs divemaster --lines 30
+   ```
+3. **Start Next.js Production App**:
+   ```bash
+   cd /var/www/divemaster
+   pm2 start npm --name "divemaster" -- start
+   pm2 save
+   ```
+4. **Test Local Application Response**:
+   ```bash
+   curl http://127.0.0.1:3000
+   ```
+
 ---
 *Setup Complete! Your DiveMaster Production App is live at `https://yourdomain.com`!*
