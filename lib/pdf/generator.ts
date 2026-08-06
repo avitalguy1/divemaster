@@ -15,67 +15,85 @@ export async function generateEvaluationPdf(courseId: string, txClient?: any): P
   // Header Banner
   page.drawRectangle({
     x: 0,
-    y: height - 80,
+    y: height - 70,
     width,
-    height: 80,
+    height: 70,
     color: rgb(0.06, 0.09, 0.16),
   });
 
   page.drawText('PADI DIVEMASTER CANDIDATE EVALUATION FORM', {
     x: 20,
-    y: height - 35,
-    size: 14,
+    y: height - 30,
+    size: 13,
     font: boldFont,
     color: rgb(1, 1, 1),
   });
 
   page.drawText(`Progress: ${progress.percentComplete}% (${progress.approvedUnits}/53 Units Approved) | Status: ${course.status}`, {
     x: 20,
-    y: height - 58,
-    size: 10,
+    y: height - 52,
+    size: 9.5,
     font,
     color: rgb(0.7, 0.8, 1),
   });
 
-  let yPosition = height - 110;
+  let yPosition = height - 95;
 
   for (const sec of sections) {
-    if (yPosition < 80) {
+    if (yPosition < 90) {
       page = pdfDoc.addPage([595.28, 841.89]);
       yPosition = height - 40;
     }
 
-    // Section Header
+    // Section Header Title Banner
     page.drawRectangle({
       x: 20,
-      y: yPosition - 18,
+      y: yPosition - 16,
       width: width - 40,
-      height: 20,
+      height: 18,
       color: rgb(0.12, 0.16, 0.23),
     });
 
     page.drawText(sec.title.toUpperCase(), {
       x: 25,
-      y: yPosition - 13,
-      size: 9,
+      y: yPosition - 12,
+      size: 8.5,
       font: boldFont,
       color: rgb(0.4, 0.7, 1),
     });
 
-    yPosition -= 26;
+    yPosition -= 24;
+
+    // Table Column Headers
+    page.drawText('REQUIREMENT ITEM', { x: 25, y: yPosition, size: 7.5, font: boldFont, color: rgb(0.4, 0.4, 0.5) });
+    page.drawText('STATUS', { x: 285, y: yPosition, size: 7.5, font: boldFont, color: rgb(0.4, 0.4, 0.5) });
+    page.drawText('INSTRUCTOR NAME & ID', { x: 365, y: yPosition, size: 7.5, font: boldFont, color: rgb(0.4, 0.4, 0.5) });
+    page.drawText('SCORE', { x: 520, y: yPosition, size: 7.5, font: boldFont, color: rgb(0.4, 0.4, 0.5) });
+
+    yPosition -= 14;
 
     for (const item of sec.items) {
-      if (yPosition < 50) {
+      if (yPosition < 45) {
         page = pdfDoc.addPage([595.28, 841.89]);
         yPosition = height - 40;
+
+        // Re-draw Column Headers on new page
+        page.drawText('REQUIREMENT ITEM', { x: 25, y: yPosition, size: 7.5, font: boldFont, color: rgb(0.4, 0.4, 0.5) });
+        page.drawText('STATUS', { x: 285, y: yPosition, size: 7.5, font: boldFont, color: rgb(0.4, 0.4, 0.5) });
+        page.drawText('INSTRUCTOR NAME & ID', { x: 365, y: yPosition, size: 7.5, font: boldFont, color: rgb(0.4, 0.4, 0.5) });
+        page.drawText('SCORE', { x: 520, y: yPosition, size: 7.5, font: boldFont, color: rgb(0.4, 0.4, 0.5) });
+        yPosition -= 14;
       }
+
+      const approvedRequests = (item.requests || []).filter((r: any) => r.status === 'APPROVED');
+      const latestApproval = approvedRequests[approvedRequests.length - 1];
 
       const statusText =
         item.status === 'APPROVED'
-          ? `[ APPROVED ] ${item.approvedCount}/${item.requiredCount}`
+          ? `APPROVED (${item.approvedCount}/${item.requiredCount})`
           : item.status === 'PENDING'
-          ? `[ PENDING ]`
-          : `[ NOT STARTED ]`;
+          ? `PENDING`
+          : `NOT STARTED`;
 
       const statusColor =
         item.status === 'APPROVED'
@@ -84,52 +102,62 @@ export async function generateEvaluationPdf(courseId: string, txClient?: any): P
           ? rgb(0.8, 0.4, 0)
           : rgb(0.4, 0.4, 0.4);
 
-      page.drawText(`• ${item.title}`, {
-        x: 30,
+      // Truncate long titles cleanly for column layout
+      const truncatedTitle = item.title.length > 44 ? `${item.title.substring(0, 42)}...` : item.title;
+
+      // Column 1: Item Title
+      page.drawText(`• ${truncatedTitle}`, {
+        x: 25,
         y: yPosition,
-        size: 8.5,
+        size: 8,
         font,
         color: rgb(0.1, 0.1, 0.1),
       });
 
+      // Column 2: Status
       page.drawText(statusText, {
-        x: width - 150,
+        x: 285,
         y: yPosition,
-        size: 8.5,
+        size: 7.5,
         font: boldFont,
         color: statusColor,
       });
 
-      yPosition -= 14;
+      // Column 3 & 4: Instructor Name & ID Column + Score Column
+      if (latestApproval) {
+        const instName = latestApproval.instructorNameSnapshot || 'Instructor';
+        const instPadi = latestApproval.instructorPadiSnapshot ? ` (${latestApproval.instructorPadiSnapshot})` : '';
+        const instColText = `${instName}${instPadi}`;
+        const truncatedInst = instColText.length > 26 ? `${instColText.substring(0, 24)}...` : instColText;
 
-      // Render Instructor Name & PADI ID for each approved sign-off
-      const approvedRequests = (item.requests || []).filter((r: any) => r.status === 'APPROVED');
-      for (const req of approvedRequests) {
-        if (yPosition < 40) {
-          page = pdfDoc.addPage([595.28, 841.89]);
-          yPosition = height - 40;
-        }
+        const scoreText = latestApproval.score ? `${latestApproval.score}/5` : 'Pass';
 
-        const instName = req.instructorNameSnapshot || 'Instructor';
-        const instPadi = req.instructorPadiSnapshot ? ` (PADI #: ${req.instructorPadiSnapshot})` : '';
-        const dateStr = req.decidedAt ? new Date(req.decidedAt).toISOString().split('T')[0] : '';
-        const scoreStr = req.score ? ` • Score: ${req.score}/5` : '';
-
-        const approvalDetail = `    Approved by ${instName}${instPadi} on ${dateStr}${scoreStr}`;
-
-        page.drawText(approvalDetail, {
-          x: 42,
+        // Column 3: Instructor Name & ID
+        page.drawText(truncatedInst, {
+          x: 365,
           y: yPosition,
           size: 7.5,
-          font: font,
-          color: rgb(0.15, 0.35, 0.55),
+          font,
+          color: rgb(0.1, 0.3, 0.6),
         });
 
-        yPosition -= 11;
+        // Column 4: Score
+        page.drawText(scoreText, {
+          x: 520,
+          y: yPosition,
+          size: 7.5,
+          font: boldFont,
+          color: rgb(0.1, 0.1, 0.1),
+        });
+      } else {
+        page.drawText('-', { x: 365, y: yPosition, size: 8, font, color: rgb(0.5, 0.5, 0.5) });
+        page.drawText('-', { x: 520, y: yPosition, size: 8, font, color: rgb(0.5, 0.5, 0.5) });
       }
+
+      yPosition -= 14;
     }
 
-    yPosition -= 10;
+    yPosition -= 8;
   }
 
   // Footer
