@@ -53,12 +53,34 @@ interface ProgressData {
   }[];
 }
 
+interface CatalogItem {
+  id: number;
+  sectionId: number;
+  code: string;
+  title: string;
+  scoring: string;
+  requiredCount: number;
+  status: 'APPROVED' | 'PENDING' | 'NOT_STARTED';
+  approvedCount: number;
+  pendingCount: number;
+}
+
+interface CatalogSectionItems {
+  id?: number;
+  sectionId?: number;
+  code: string;
+  title: string;
+  items: CatalogItem[];
+}
+
 export default function CandidateDetailPage({ params }: { params: Promise<{ studentId: string }> }) {
   const resolvedParams = use(params);
   const studentId = resolvedParams.studentId;
 
   const [candidate, setCandidate] = useState<CandidateOverview | null>(null);
   const [progress, setProgress] = useState<ProgressData | null>(null);
+  const [sectionItems, setSectionItems] = useState<CatalogSectionItems[]>([]);
+  const [expandedSectionId, setExpandedSectionId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Active evaluating request
@@ -87,10 +109,19 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
         setCandidate(cand || null);
 
         if (cand?.courseId) {
-          const progRes = await fetch(`/api/courses/${cand.courseId}/progress`);
+          const [progRes, itemsRes] = await Promise.all([
+            fetch(`/api/courses/${cand.courseId}/progress`),
+            fetch(`/api/courses/${cand.courseId}/items`),
+          ]);
+
           if (progRes.ok) {
             const progData = await progRes.json();
             setProgress(progData.progress || null);
+          }
+
+          if (itemsRes.ok) {
+            const itemsData = await itemsRes.json();
+            setSectionItems(itemsData.sections || []);
           }
         }
       }
@@ -285,7 +316,7 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
         </Card>
       </div>
 
-      {/* Main Grid: Pie Chart & Section Breakdown */}
+      {/* Main Grid: Pie Chart & Interactive Section Breakdown */}
       <div className="grid gap-6 md:grid-cols-3">
         <Card className="border-slate-800 bg-slate-900 md:col-span-1">
           <CardHeader>
@@ -300,28 +331,96 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
           <CardHeader>
             <CardTitle className="text-base font-semibold text-white">Progress by Section</CardTitle>
             <CardDescription className="text-xs text-slate-400">
-              Evaluation section completion tracking
+              Click any section below to view items and candidate sign-off status
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             {progress?.sections.map((sec) => {
               const secPercent = sec.totalUnits > 0 ? Math.round((sec.approvedUnits / sec.totalUnits) * 100) : 0;
+              const isExpanded = expandedSectionId === sec.sectionId;
+              const secData = sectionItems.find((s: any) => (s.id ?? s.sectionId) === sec.sectionId);
+
               return (
-                <div key={sec.sectionId} className="space-y-1.5">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="font-medium text-slate-200">{sec.title}</span>
-                    <div className="flex items-center gap-2">
-                      {sec.pendingUnits > 0 && (
-                        <Badge variant="outline" className="border-amber-500/50 bg-amber-950/40 text-amber-300 text-[10px]">
-                          {sec.pendingUnits} pending
-                        </Badge>
-                      )}
-                      <span className="text-slate-400 font-mono">
-                        {sec.approvedUnits} / {sec.totalUnits}
-                      </span>
+                <div
+                  key={sec.sectionId}
+                  className="rounded-lg border border-slate-800 bg-slate-950/60 transition-all overflow-hidden"
+                >
+                  {/* Clickable Header Row */}
+                  <div
+                    onClick={() => setExpandedSectionId(isExpanded ? null : sec.sectionId)}
+                    className="p-3.5 cursor-pointer hover:bg-slate-800/50 transition-colors space-y-2"
+                  >
+                    <div className="flex justify-between items-center text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="text-blue-400 font-mono">{isExpanded ? '▲' : '▼'}</span>
+                        <span className="font-semibold text-slate-100 text-sm">{sec.title}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {sec.pendingUnits > 0 && (
+                          <Badge variant="outline" className="border-amber-500/50 bg-amber-950/40 text-amber-300 text-[10px]">
+                            {sec.pendingUnits} pending
+                          </Badge>
+                        )}
+                        <span className="text-slate-400 font-mono text-xs">
+                          {sec.approvedUnits} / {sec.totalUnits} units ({secPercent}%)
+                        </span>
+                      </div>
                     </div>
+                    <Progress value={secPercent} className="h-1.5 bg-slate-900" />
                   </div>
-                  <Progress value={secPercent} className="h-2 bg-slate-950" />
+
+                  {/* Expanded Items List */}
+                  {isExpanded && (
+                    <div className="border-t border-slate-800 bg-slate-900/90 p-3 space-y-2">
+                      {!secData || !secData.items || secData.items.length === 0 ? (
+                        <div className="text-xs text-slate-500 italic py-2 text-center">No requirement items in this section.</div>
+                      ) : (
+                        secData.items.map((item) => {
+                          const pendingForThisItem = candidate.pendingRequests.find((r) => r.itemId === item.id);
+
+                          return (
+                            <div
+                              key={item.id}
+                              className="p-2.5 bg-slate-950/80 rounded border border-slate-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs"
+                            >
+                              <div>
+                                <div className="font-medium text-slate-200">{item.title}</div>
+                                <div className="text-[11px] text-slate-400 mt-0.5">
+                                  Required count: {item.requiredCount} {item.requiredCount > 1 ? `(${item.approvedCount}/${item.requiredCount} approved)` : ''}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2 self-end sm:self-auto">
+                                {item.status === 'APPROVED' ? (
+                                  <Badge className="bg-green-600/20 text-green-300 border border-green-500/30 text-[10px]">
+                                    APPROVED
+                                  </Badge>
+                                ) : item.status === 'PENDING' ? (
+                                  <Badge className="bg-amber-600/20 text-amber-300 border border-amber-500/30 text-[10px]">
+                                    PENDING
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="border-slate-700 text-slate-400 text-[10px]">
+                                    NOT STARTED
+                                  </Badge>
+                                )}
+
+                                {pendingForThisItem && (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => startEvaluation(pendingForThisItem)}
+                                    className="h-7 text-[11px] bg-blue-600 hover:bg-blue-500 text-white font-semibold"
+                                  >
+                                    Evaluate & Sign
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}

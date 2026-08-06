@@ -43,10 +43,32 @@ interface Instructor {
   padiNumber: string | null;
 }
 
+interface CatalogItem {
+  id: number;
+  sectionId: number;
+  code: string;
+  title: string;
+  scoring: string;
+  requiredCount: number;
+  status: 'APPROVED' | 'PENDING' | 'NOT_STARTED';
+  approvedCount: number;
+  pendingCount: number;
+}
+
+interface CatalogSectionItems {
+  id?: number;
+  sectionId?: number;
+  code: string;
+  title: string;
+  items: CatalogItem[];
+}
+
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
   const [mentor, setMentor] = useState<Mentor | null>(null);
   const [progress, setProgress] = useState<ProgressData | null>(null);
+  const [sectionItems, setSectionItems] = useState<CatalogSectionItems[]>([]);
+  const [expandedSectionId, setExpandedSectionId] = useState<number | null>(null);
   const [courseId, setCourseId] = useState<string | null>(null);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
 
@@ -61,9 +83,10 @@ export default function DashboardPage() {
   const loadDashboard = async () => {
     setIsLoading(true);
     try {
-      const [meRes, instRes] = await Promise.all([
+      const [meRes, instRes, courseMeRes] = await Promise.all([
         fetch('/api/auth/me'),
         fetch('/api/instructors'),
+        fetch('/api/courses/me'),
       ]);
 
       if (meRes.ok) {
@@ -76,25 +99,15 @@ export default function DashboardPage() {
         setInstructors(instData.instructors || []);
       }
 
-      const requestsRes = await fetch('/api/requests?mine=true');
-      if (requestsRes.ok) {
-        const reqData = await requestsRes.json();
-        const firstReq = reqData.requests[0];
-        if (firstReq?.request?.courseId) {
-          const cId = firstReq.request.courseId;
-          setCourseId(cId);
+      if (courseMeRes.ok) {
+        const courseData = await courseMeRes.json();
+        setCourseId(courseData.courseId);
+        setProgress(courseData.progress || null);
+        setMentor(courseData.mentor || null);
+        setSectionItems(courseData.sections || []);
 
-          const progRes = await fetch(`/api/courses/${cId}/progress`);
-          if (progRes.ok) {
-            const progData = await progRes.json();
-            setProgress(progData.progress);
-            setMentor(progData.mentor || null);
-
-            // Prompt if no mentor assigned yet
-            if (!progData.mentor) {
-              setShowMentorModal(true);
-            }
-          }
+        if (!courseData.mentor) {
+          setShowMentorModal(true);
         }
       }
     } catch (err) {
@@ -261,28 +274,90 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="text-base font-semibold text-white">Progress by Section</CardTitle>
             <CardDescription className="text-xs text-slate-400">
-              Evaluation section completion tracking
+              Click any section below to view items and request sign-offs
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             {progress?.sections.map((sec) => {
               const secPercent = sec.totalUnits > 0 ? Math.round((sec.approvedUnits / sec.totalUnits) * 100) : 0;
+              const isExpanded = expandedSectionId === sec.sectionId;
+              const secData = sectionItems.find((s: any) => (s.id ?? s.sectionId) === sec.sectionId);
+
               return (
-                <div key={sec.sectionId} className="space-y-1.5">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="font-medium text-slate-200">{sec.title}</span>
-                    <div className="flex items-center gap-2">
-                      {sec.pendingUnits > 0 && (
-                        <Badge variant="outline" className="border-amber-500/50 bg-amber-950/40 text-amber-300 text-[10px]">
-                          {sec.pendingUnits} pending
-                        </Badge>
-                      )}
-                      <span className="text-slate-400 font-mono">
-                        {sec.approvedUnits} / {sec.totalUnits}
-                      </span>
+                <div
+                  key={sec.sectionId}
+                  className="rounded-lg border border-slate-800 bg-slate-950/60 transition-all overflow-hidden"
+                >
+                  {/* Clickable Header Row */}
+                  <div
+                    onClick={() => setExpandedSectionId(isExpanded ? null : sec.sectionId)}
+                    className="p-3.5 cursor-pointer hover:bg-slate-800/50 transition-colors space-y-2"
+                  >
+                    <div className="flex justify-between items-center text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="text-blue-400 font-mono">{isExpanded ? '▲' : '▼'}</span>
+                        <span className="font-semibold text-slate-100 text-sm">{sec.title}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {sec.pendingUnits > 0 && (
+                          <Badge variant="outline" className="border-amber-500/50 bg-amber-950/40 text-amber-300 text-[10px]">
+                            {sec.pendingUnits} pending
+                          </Badge>
+                        )}
+                        <span className="text-slate-400 font-mono text-xs">
+                          {sec.approvedUnits} / {sec.totalUnits} units ({secPercent}%)
+                        </span>
+                      </div>
                     </div>
+                    <Progress value={secPercent} className="h-1.5 bg-slate-900" />
                   </div>
-                  <Progress value={secPercent} className="h-2 bg-slate-950" />
+
+                  {/* Expanded Items List */}
+                  {isExpanded && (
+                    <div className="border-t border-slate-800 bg-slate-900/90 p-3 space-y-2">
+                      {!secData || !secData.items || secData.items.length === 0 ? (
+                        <div className="text-xs text-slate-500 italic py-2 text-center">No requirement items in this section.</div>
+                      ) : (
+                        secData.items.map((item) => (
+                          <div
+                            key={item.id}
+                            className="p-2.5 bg-slate-950/80 rounded border border-slate-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs"
+                          >
+                            <div>
+                              <div className="font-medium text-slate-200">{item.title}</div>
+                              <div className="text-[11px] text-slate-400 mt-0.5">
+                                Required count: {item.requiredCount} {item.requiredCount > 1 ? `(${item.approvedCount}/${item.requiredCount} approved)` : ''}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 self-end sm:self-auto">
+                              {item.status === 'APPROVED' ? (
+                                <Badge className="bg-green-600/20 text-green-300 border border-green-500/30 text-[10px]">
+                                  APPROVED
+                                </Badge>
+                              ) : item.status === 'PENDING' ? (
+                                <Badge className="bg-amber-600/20 text-amber-300 border border-amber-500/30 text-[10px]">
+                                  PENDING
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="border-slate-700 text-slate-400 text-[10px]">
+                                  NOT STARTED
+                                </Badge>
+                              )}
+
+                              {item.status !== 'APPROVED' && (
+                                <Link href={`/dashboard/requests/new?itemId=${item.id}`}>
+                                  <Button size="sm" variant="outline" className="h-7 text-[11px] border-blue-500/50 text-blue-300 hover:bg-blue-950">
+                                    Request Sign-off
+                                  </Button>
+                                </Link>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
