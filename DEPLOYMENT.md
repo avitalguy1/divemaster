@@ -6,10 +6,17 @@ This guide walks you step-by-step through deploying the **DiveMaster Progress Ap
 
 ## Step 1: Server Prerequisites & Node.js 20 Setup
 
-1. **Update System Packages**:
+1. **Update System Packages & Enable 2GB Swap (Prevents OOM Build Kills)**:
    ```bash
    sudo apt update && sudo apt upgrade -y
    sudo apt install -y curl git build-essential
+
+   # Create 2GB Swap space to prevent out-of-memory errors during next build
+   sudo fallocate -l 2G /swapfile
+   sudo chmod 600 /swapfile
+   sudo mkswap /swapfile
+   sudo swapon /swapfile
+   echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
    ```
 
 2. **Install Node.js 20 LTS**:
