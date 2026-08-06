@@ -1,0 +1,37 @@
+{
+  "Common": {
+    "title": "Divemaster Progress App",
+    "login": "Login",
+    "logout": "Logout",
+    "welcome": "Welcome"
+  },
+  "Auth": {
+    "loginTitle": "PADI Divemaster Progress",
+    "loginSubtitle": "Sign in to track your evaluation requirements",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "name@example.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "••••••••",
+    "signInButton": "Sign In",
+    "signingIn": "Signing in...",
+    "invalidCredentials": "Invalid email or password",
+    "errorTitle": "Error"
+  },
+  "Requests": {
+    "newRequestTitle": "Submit Sign-off Request",
+    "newRequestSubtitle": "Select a requirement, date performed, and target instructor",
+    "itemLabel": "Requirement Item",
+    "itemPlaceholder": "Select a requirement item...",
+    "dateLabel": "Date Performed",
+    "instructorLabel": "Target Instructor",
+    "instructorPlaceholder": "Select an instructor...",
+    "noteLabel": "DMT Note (optional)",
+    "notePlaceholder": "Add any relevant details about your training event...",
+    "submitButton": "Submit Request",
+    "submitting": "Submitting...",
+    "successMessage": "Request submitted successfully!",
+    "inboxTitle": "Sign-off Approvals Inbox",
+    "inboxSubtitle": "Review and evaluate candidate sign-off requests",
+    "noRequests": "No pending sign-off requests."
+  }
+}

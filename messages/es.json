@@ -1,0 +1,37 @@
+{
+  "Common": {
+    "title": "Divemaster Progress App [ES]",
+    "login": "Login [ES]",
+    "logout": "Logout [ES]",
+    "welcome": "Welcome [ES]"
+  },
+  "Auth": {
+    "loginTitle": "PADI Divemaster Progress [ES]",
+    "loginSubtitle": "Sign in to track your evaluation requirements [ES]",
+    "emailLabel": "Email Address [ES]",
+    "emailPlaceholder": "name@example.com",
+    "passwordLabel": "Password [ES]",
+    "passwordPlaceholder": "••••••••",
+    "signInButton": "Sign In [ES]",
+    "signingIn": "Signing in... [ES]",
+    "invalidCredentials": "Invalid email or password [ES]",
+    "errorTitle": "Error [ES]"
+  },
+  "Requests": {
+    "newRequestTitle": "Submit Sign-off Request [ES]",
+    "newRequestSubtitle": "Select a requirement, date performed, and target instructor [ES]",
+    "itemLabel": "Requirement Item [ES]",
+    "itemPlaceholder": "Select a requirement item... [ES]",
+    "dateLabel": "Date Performed [ES]",
+    "instructorLabel": "Target Instructor [ES]",
+    "instructorPlaceholder": "Select an instructor... [ES]",
+    "noteLabel": "Student Note (optional) [ES]",
+    "notePlaceholder": "Add any relevant details about your training event... [ES]",
+    "submitButton": "Submit Request [ES]",
+    "submitting": "Submitting... [ES]",
+    "successMessage": "Request submitted successfully! [ES]",
+    "inboxTitle": "Sign-off Approvals Inbox [ES]",
+    "inboxSubtitle": "Review and evaluate candidate sign-off requests [ES]",
+    "noRequests": "No pending sign-off requests. [ES]"
+  }
+}
