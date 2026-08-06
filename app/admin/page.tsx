@@ -18,6 +18,7 @@ interface CandidateOverview {
   email: string;
   courseId: string;
   isActive?: boolean;
+  isArchived?: boolean;
   approvedUnits: number;
   percentComplete: number;
   status: string;
@@ -49,7 +50,8 @@ interface AuditLogEntry {
 }
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<'dmts' | 'deleted' | 'instructors' | 'reports'>('dmts');
+  const [activeTab, setActiveTab] = useState<'dmts' | 'archive' | 'deleted' | 'instructors' | 'reports'>('dmts');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // DMTs State
   const [candidates, setCandidates] = useState<CandidateOverview[]>([]);
@@ -203,8 +205,54 @@ export default function AdminPage() {
     }
   };
 
-  const activeCandidates = candidates.filter((c) => c.isActive !== false);
-  const deletedCandidates = candidates.filter((c) => c.isActive === false);
+  const handleArchiveCandidate = async (studentId: string, studentName: string, isArchived: boolean) => {
+    const actionText = isArchived ? 'Archive' : 'Unarchive';
+    if (!confirm(`Are you sure you want to ${actionText.toLowerCase()} candidate "${studentName}"?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/admin/candidates/${studentId}/archive`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isArchived }),
+      });
+
+      if (res.ok) {
+        loadAdminData();
+      } else {
+        const body = await res.json();
+        alert(body.error?.message || `Failed to ${actionText.toLowerCase()} candidate`);
+      }
+    } catch {
+      alert(`Failed to ${actionText.toLowerCase()} candidate`);
+    }
+  };
+
+  // Filter candidates by search query and tabs
+  const query = searchQuery.trim().toLowerCase();
+
+  const activeCandidates = candidates.filter(
+    (c) => c.isActive !== false && c.isArchived !== true && (
+      !query || c.studentName.toLowerCase().includes(query) || c.email.toLowerCase().includes(query)
+    )
+  );
+
+  const archivedCandidates = candidates.filter(
+    (c) => c.isActive !== false && c.isArchived === true && (
+      !query || c.studentName.toLowerCase().includes(query) || c.email.toLowerCase().includes(query)
+    )
+  );
+
+  const deletedCandidates = candidates.filter(
+    (c) => c.isActive === false && (
+      !query || c.studentName.toLowerCase().includes(query) || c.email.toLowerCase().includes(query)
+    )
+  );
+
+  const totalActiveCount = candidates.filter((c) => c.isActive !== false && c.isArchived !== true).length;
+  const totalArchivedCount = candidates.filter((c) => c.isActive !== false && c.isArchived === true).length;
+  const totalDeletedCount = candidates.filter((c) => c.isActive === false).length;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-8 space-y-6 max-w-6xl mx-auto">
@@ -213,7 +261,7 @@ export default function AdminPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Admin Management Panel</h1>
           <p className="text-sm text-sky-100 mt-1 font-medium">
-            Manage DMT Candidates, Instructors, and System Reports
+            Manage DMT Candidates, Graduated Archives, Instructors, and Audit Records
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -234,7 +282,18 @@ export default function AdminPage() {
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'
           }
         >
-          DMT Candidates ({activeCandidates.length})
+          DMT Candidates ({totalActiveCount})
+        </Button>
+        <Button
+          variant={activeTab === 'archive' ? 'default' : 'ghost'}
+          onClick={() => setActiveTab('archive')}
+          className={
+            activeTab === 'archive'
+              ? 'bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'
+          }
+        >
+          Archive ({totalArchivedCount})
         </Button>
         <Button
           variant={activeTab === 'deleted' ? 'default' : 'ghost'}
@@ -245,7 +304,7 @@ export default function AdminPage() {
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'
           }
         >
-          Deleted DMTs ({deletedCandidates.length})
+          Deleted DMTs ({totalDeletedCount})
         </Button>
         <Button
           variant={activeTab === 'instructors' ? 'default' : 'ghost'}
@@ -271,20 +330,46 @@ export default function AdminPage() {
         </Button>
       </div>
 
+      {/* Candidate Search Input Bar */}
+      {(activeTab === 'dmts' || activeTab === 'archive' || activeTab === 'deleted') && (
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-3">
+          <span className="text-slate-400 font-bold text-sm">🔍</span>
+          <Input
+            type="text"
+            placeholder="Search candidates by student name or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 h-10 font-medium"
+          />
+          {searchQuery && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setSearchQuery('')}
+              className="text-xs text-slate-500 hover:text-slate-800"
+            >
+              Clear Search
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* TAB 1: Active DMTs Roster */}
       {activeTab === 'dmts' && (
         <Card className="border border-slate-200/80 bg-white shadow-xs">
           <CardHeader>
             <CardTitle className="text-lg font-bold text-slate-800">Active DMT Candidates Roster</CardTitle>
             <CardDescription className="text-slate-500 text-sm">
-              Manage active DMT candidates, inspect status reports, or move test candidates to the Deleted tab
+              Manage active candidates, inspect status reports, or move graduated students to the Archive tab
             </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="py-12 text-center text-slate-500 font-medium">Loading DMT candidates...</div>
             ) : activeCandidates.length === 0 ? (
-              <div className="py-12 text-center text-slate-500 font-medium">No active DMT candidates found.</div>
+              <div className="py-12 text-center text-slate-500 font-medium">
+                {searchQuery ? 'No candidate matches search query.' : 'No active DMT candidates found.'}
+              </div>
             ) : (
               <Table>
                 <TableHeader>
@@ -309,7 +394,7 @@ export default function AdminPage() {
                       <TableCell>
                         {cand.status === 'COMPLETE' ? (
                           <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-300 font-semibold">
-                            COMPLETE
+                            GRADUATED / COMPLETE
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="border-sky-300 bg-sky-50 text-sky-700 font-semibold">
@@ -339,6 +424,14 @@ export default function AdminPage() {
                           <Button
                             size="sm"
                             variant="outline"
+                            onClick={() => handleArchiveCandidate(cand.studentId, cand.studentName, true)}
+                            className="border-slate-300 text-slate-700 hover:bg-slate-100 font-medium text-xs"
+                          >
+                            Archive
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
                             onClick={() => handleDeleteCandidate(cand.studentId, cand.studentName)}
                             className="border-red-200 text-red-700 hover:bg-red-50 font-medium text-xs"
                           >
@@ -355,7 +448,86 @@ export default function AdminPage() {
         </Card>
       )}
 
-      {/* TAB 2: Deleted DMTs */}
+      {/* TAB 2: Archive Folder (Graduated & Archived Candidates) */}
+      {activeTab === 'archive' && (
+        <Card className="border border-slate-200/80 bg-white shadow-xs">
+          <CardHeader>
+            <CardTitle className="text-lg font-bold text-slate-800">Graduated & Archived Candidates</CardTitle>
+            <CardDescription className="text-slate-500 text-sm">
+              Archive folder for completed DMT graduates. Use search above or click Unarchive to restore to active roster.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="py-12 text-center text-slate-500 font-medium">Loading archived candidates...</div>
+            ) : archivedCandidates.length === 0 ? (
+              <div className="py-12 text-center text-slate-500 font-medium">
+                {searchQuery ? 'No archived candidate matches search query.' : 'No archived candidate records found.'}
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-slate-200 hover:bg-transparent">
+                    <TableHead className="text-slate-700 font-bold">Candidate</TableHead>
+                    <TableHead className="text-slate-700 font-bold">Status</TableHead>
+                    <TableHead className="text-slate-700 font-bold">Approved Units</TableHead>
+                    <TableHead className="text-slate-700 font-bold">Completion</TableHead>
+                    <TableHead className="text-right text-slate-700 font-bold">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {archivedCandidates.map((cand) => (
+                    <TableRow key={cand.studentId} className="border-slate-200 hover:bg-sky-50/40 transition-colors">
+                      <TableCell className="font-bold text-slate-800">
+                        <Link href={`/admin/candidates/${cand.studentId}`} className="text-base text-sky-700 hover:text-sky-800 hover:underline">
+                          {cand.studentName}
+                        </Link>
+                        <div className="text-xs text-slate-500 font-normal">{cand.email}</div>
+                      </TableCell>
+
+                      <TableCell>
+                        <Badge className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold">
+                          📁 ARCHIVED GRADUATE
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell className="font-mono font-bold text-slate-700">
+                        {cand.approvedUnits} / 53
+                      </TableCell>
+
+                      <TableCell className="w-44">
+                        <div className="space-y-1">
+                          <div className="text-xs text-slate-600 font-mono font-bold text-right">{cand.percentComplete}%</div>
+                          <Progress value={cand.percentComplete} className="h-2 bg-slate-100" />
+                        </div>
+                      </TableCell>
+
+                      <TableCell className="text-right">
+                        <div className="flex justify-end items-center gap-2">
+                          <Link href={`/admin/candidates/${cand.studentId}`}>
+                            <Button size="sm" className="bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-xs text-xs">
+                              View Report
+                            </Button>
+                          </Link>
+                          <Button
+                            size="sm"
+                            onClick={() => handleArchiveCandidate(cand.studentId, cand.studentName, false)}
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-xs text-xs"
+                          >
+                            Unarchive Candidate
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* TAB 3: Deleted DMTs */}
       {activeTab === 'deleted' && (
         <Card className="border border-slate-200/80 bg-white shadow-xs">
           <CardHeader>
@@ -368,7 +540,9 @@ export default function AdminPage() {
             {isLoading ? (
               <div className="py-12 text-center text-slate-500 font-medium">Loading deleted candidates...</div>
             ) : deletedCandidates.length === 0 ? (
-              <div className="py-12 text-center text-slate-500 italic">No deleted DMT candidates in bin.</div>
+              <div className="py-12 text-center text-slate-500 italic">
+                {searchQuery ? 'No deleted candidate matches search query.' : 'No deleted DMT candidates in bin.'}
+              </div>
             ) : (
               <Table>
                 <TableHeader>
@@ -423,7 +597,7 @@ export default function AdminPage() {
         </Card>
       )}
 
-      {/* TAB 3: Instructors Management */}
+      {/* TAB 4: Instructors Management */}
       {activeTab === 'instructors' && (
         <Card className="border border-slate-200/80 bg-white shadow-xs">
           <CardHeader className="flex flex-row justify-between items-center">
@@ -496,7 +670,7 @@ export default function AdminPage() {
         </Card>
       )}
 
-      {/* TAB 4: Reports & Audit Log */}
+      {/* TAB 5: Reports & Audit Log */}
       {activeTab === 'reports' && (
         <Card className="border border-slate-200/80 bg-white shadow-xs">
           <CardHeader>

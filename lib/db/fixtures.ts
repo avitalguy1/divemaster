@@ -325,8 +325,9 @@ async function main() {
     await approveItem(course3Id, 'PA_SKILL1', 1, inst2, sig2Id, 15);
     await approveItem(course3Id, 'PA_SKILL1', 2, inst2, sig2Id, 14);
     await approveItem(course3Id, 'PA_SKILL1', 3, inst2, sig2Id, 13);
-    // PA_SKILL2 (1 unit)
+    // PA_SKILL2 (2 units)
     await approveItem(course3Id, 'PA_SKILL2', 1, inst2, sig2Id, 12);
+    await approveItem(course3Id, 'PA_SKILL2', 2, inst2, sig2Id, 11.5);
     // PA_SKILL3 (2 units)
     await approveItem(course3Id, 'PA_SKILL3', 1, inst2, sig2Id, 11);
     await approveItem(course3Id, 'PA_SKILL3', 2, inst2, sig2Id, 10);

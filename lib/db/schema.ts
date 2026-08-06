@@ -127,9 +127,11 @@ export const courses = pgTable('courses', {
   studentId: uuid('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
   diveCenterId: uuid('dive_center_id').notNull().references(() => diveCenters.id),
   status: courseStatusEnum('status').notNull().default('ACTIVE'),
+  isArchived: boolean('is_archived').notNull().default(false),
   startedAt: timestamp('started_at', { mode: 'string' }).notNull().default(sql`CURRENT_DATE`),
   completedAt: timestamp('completed_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const signatures = pgTable('signatures', {

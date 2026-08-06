@@ -65,6 +65,7 @@ export const GET = createApiHandler({
         email: student.email,
         courseId: studentCourse.id,
         isActive: student.isActive,
+        isArchived: studentCourse.isArchived || false,
         approvedUnits: progress.approvedUnits,
         percentComplete: progress.percentComplete,
         status: progress.isComplete ? 'COMPLETE' : 'ACTIVE',
