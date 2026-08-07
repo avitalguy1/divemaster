@@ -38,7 +38,7 @@ async function main() {
     const centerRes = await db
       .insert(diveCenters)
       .values({
-        name: 'Blue Horizon Diving',
+        name: 'Underwater Vision',
         timezone: 'Pacific/Auckland',
       })
       .returning();
