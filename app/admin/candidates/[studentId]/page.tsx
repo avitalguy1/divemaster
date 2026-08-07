@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useRef } from 'react';
 import Link from 'next/link';
 
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { SignaturePad } from '@/components/signature-pad';
+
+interface PendingReq {
+  requestId: string;
+  itemId: number;
+  title: string;
+  scoring: string;
+  requiredCount: number;
+  performedAt: string;
+  studentNote: string | null;
+  attemptNumber: number;
+}
 
 interface ApprovedRecord {
   requestId: string;
@@ -32,6 +44,7 @@ interface CandidateOverview {
   percentComplete: number;
   status: string;
   pendingCount: number;
+  pendingRequests: PendingReq[];
   approvedRequests: ApprovedRecord[];
 }
 
@@ -74,10 +87,22 @@ export default function AdminCandidateReportPage({ params }: { params: Promise<{
   const [expandedSectionId, setExpandedSectionId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Active evaluation state for pending requests
+  const [activeReq, setActiveReq] = useState<PendingReq | null>(null);
+  const evalSectionRef = useRef<HTMLDivElement | null>(null);
+  const [signatureData, setSignatureData] = useState<string>('');
+  const [savedAdoptedSignature, setSavedAdoptedSignature] = useState<string | null>(null);
+  const [useAdoptedSignature, setUseAdoptedSignature] = useState<boolean>(false);
+  const [adoptSignatureCheckbox, setAdoptSignatureCheckbox] = useState<boolean>(true);
+  const [scoreInput, setScoreInput] = useState<number>(4);
+  const [commentInput, setCommentInput] = useState<string>('');
+  const [isSubmittingEval, setIsSubmittingEval] = useState(false);
+  const [evalErrorMsg, setEvalErrorMsg] = useState<string | null>(null);
+
   // Void modal state
   const [activeVoidReq, setActiveVoidReq] = useState<ApprovedRecord | null>(null);
   const [voidReason, setVoidReason] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmittingVoid, setIsSubmittingVoid] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const loadData = async () => {
@@ -115,7 +140,88 @@ export default function AdminCandidateReportPage({ params }: { params: Promise<{
 
   useEffect(() => {
     loadData();
+
+    try {
+      const saved = localStorage.getItem('divemaster_adopted_signature');
+      if (saved) {
+        setSavedAdoptedSignature(saved);
+      }
+    } catch {
+      // Storage fallback
+    }
   }, [studentId]);
+
+  const startEvaluation = (req: PendingReq) => {
+    setActiveReq(req);
+    setEvalErrorMsg(null);
+
+    try {
+      const saved = localStorage.getItem('divemaster_adopted_signature');
+      if (saved) {
+        setSavedAdoptedSignature(saved);
+        setSignatureData(saved);
+        setUseAdoptedSignature(true);
+      } else {
+        setUseAdoptedSignature(false);
+        setSignatureData('');
+      }
+    } catch {
+      setUseAdoptedSignature(false);
+      setSignatureData('');
+    }
+
+    setTimeout(() => {
+      evalSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  };
+
+  const handleApprove = async () => {
+    if (!activeReq) return;
+    if (!signatureData) {
+      setEvalErrorMsg('Signature is required to approve sign-off.');
+      return;
+    }
+
+    setIsSubmittingEval(true);
+    setEvalErrorMsg(null);
+
+    if (adoptSignatureCheckbox && signatureData) {
+      try {
+        localStorage.setItem('divemaster_adopted_signature', signatureData);
+        setSavedAdoptedSignature(signatureData);
+      } catch {
+        // Storage fallback
+      }
+    }
+
+    try {
+      const res = await fetch(`/api/requests/${activeReq.requestId}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          signature: signatureData,
+          comment: commentInput,
+          score: activeReq.scoring === 'SCORE_1_5' ? Number(scoreInput) : undefined,
+        }),
+      });
+
+      const body = await res.json();
+
+      if (!res.ok) {
+        setEvalErrorMsg(body.error?.message || 'Approval failed');
+        setIsSubmittingEval(false);
+        return;
+      }
+
+      setActiveReq(null);
+      setCommentInput('');
+      await loadData();
+    } catch {
+      setEvalErrorMsg('Approval failed');
+    } finally {
+      setIsSubmittingEval(false);
+    }
+  };
 
   const handleVoidRequest = async () => {
     if (!activeVoidReq) return;
@@ -124,7 +230,7 @@ export default function AdminCandidateReportPage({ params }: { params: Promise<{
       return;
     }
 
-    setIsSubmitting(true);
+    setIsSubmittingVoid(true);
     setErrorMsg(null);
 
     try {
@@ -137,7 +243,7 @@ export default function AdminCandidateReportPage({ params }: { params: Promise<{
       const body = await res.json();
       if (!res.ok) {
         setErrorMsg(body.error?.message || 'Void action failed');
-        setIsSubmitting(false);
+        setIsSubmittingVoid(false);
         return;
       }
 
@@ -147,13 +253,13 @@ export default function AdminCandidateReportPage({ params }: { params: Promise<{
     } catch {
       setErrorMsg('Void action failed');
     } finally {
-      setIsSubmitting(false);
+      setIsSubmittingVoid(false);
     }
   };
 
   const handleDeleteCandidate = async () => {
     if (!candidate) return;
-    if (!confirm(`Are you sure you want to permanently delete DMT candidate "${candidate.studentName}"?\n\nThis will remove all associated sign-off requests and course evaluation progress.`)) {
+    if (!confirm(`Are you sure you want to delete DMT candidate "${candidate.studentName}"?`)) {
       return;
     }
 
@@ -190,8 +296,10 @@ export default function AdminCandidateReportPage({ params }: { params: Promise<{
     );
   }
 
+  const pendingList = candidate.pendingRequests || [];
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-8 space-y-6 max-w-6xl mx-auto">
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-8 space-y-6 max-w-6xl mx-auto pb-20 sm:pb-8">
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-sky-700 via-cyan-600 to-teal-600 p-6 sm:p-8 rounded-2xl text-white shadow-lg shadow-sky-600/15">
         <div>
@@ -259,13 +367,186 @@ export default function AdminCandidateReportPage({ params }: { params: Promise<{
         <Card className="border border-slate-200/80 bg-white shadow-xs">
           <CardHeader className="p-4 pb-2">
             <CardDescription className="text-xs text-slate-500 font-medium font-mono">Pending Review</CardDescription>
-            <CardTitle className="text-3xl font-extrabold text-amber-600">{candidate.pendingCount}</CardTitle>
+            <CardTitle className="text-3xl font-extrabold text-amber-600">{pendingList.length}</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <span className="text-xs text-slate-500">Awaiting Instructor Sign-off</span>
+            <span className="text-xs text-slate-500">Awaiting Sign-off</span>
           </CardContent>
         </Card>
       </div>
+
+      {/* Pending Sign-off Requests Area */}
+      {pendingList.length > 0 && (
+        <div ref={evalSectionRef} className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-bold text-slate-800">
+              Pending Sign-off Requests ({pendingList.length})
+            </h2>
+            <Badge className="bg-amber-100 text-amber-800 border border-amber-300 font-bold">
+              {pendingList.length} Awaiting Evaluation
+            </Badge>
+          </div>
+
+          <div className="space-y-4">
+            {pendingList.map((req) => {
+              const isEvaluatingThis = activeReq?.requestId === req.requestId;
+
+              return (
+                <Card
+                  key={req.requestId}
+                  className={`border transition-all shadow-xs bg-white ${
+                    isEvaluatingThis ? 'ring-2 ring-sky-500 border-sky-300 shadow-md' : 'border-slate-200/80'
+                  }`}
+                >
+                  <CardHeader className="pb-3 bg-slate-50/50 border-b border-slate-100 rounded-t-xl">
+                    <div className="flex justify-between items-start">
+                      <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-800 font-semibold">
+                        PENDING EVALUATION
+                      </Badge>
+                      <span className="text-xs text-slate-500 font-mono">Attempt {req.attemptNumber}</span>
+                    </div>
+                    <CardTitle className="text-lg font-bold text-slate-800 pt-1">{req.title}</CardTitle>
+                    <CardDescription className="text-slate-500 text-xs">
+                      Performed Date: {new Date(req.performedAt).toLocaleDateString()}
+                    </CardDescription>
+                  </CardHeader>
+
+                  <CardContent className="space-y-3 pt-4">
+                    {req.studentNote && (
+                      <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80 italic text-slate-700 text-xs">
+                        DMT Note: &quot;{req.studentNote}&quot;
+                      </div>
+                    )}
+
+                    {/* Embedded Evaluation Form */}
+                    {isEvaluatingThis && (
+                      <div className="mt-4 pt-4 border-t border-slate-200 space-y-5 bg-sky-50/40 p-4 rounded-xl">
+                        {evalErrorMsg && (
+                          <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-800 text-sm">
+                            <AlertTitle>Error</AlertTitle>
+                            <AlertDescription>{evalErrorMsg}</AlertDescription>
+                          </Alert>
+                        )}
+
+                        {req.scoring === 'SCORE_1_5' && (
+                          <div className="space-y-2">
+                            <Label className="text-slate-800 text-sm font-semibold">Performance Score (1-5)</Label>
+                            <div className="flex gap-2">
+                              {[1, 2, 3, 4, 5].map((scoreVal) => (
+                                <Button
+                                  key={scoreVal}
+                                  type="button"
+                                  variant={scoreInput === scoreVal ? 'default' : 'outline'}
+                                  className={
+                                    scoreInput === scoreVal
+                                      ? 'bg-sky-600 text-white font-bold flex-1 shadow-xs'
+                                      : 'border-slate-300 text-slate-700 bg-white hover:bg-slate-100 flex-1'
+                                  }
+                                  onClick={() => setScoreInput(scoreVal)}
+                                >
+                                  {scoreVal}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="space-y-2">
+                          <Label htmlFor="comment-admin" className="text-slate-800 text-sm font-semibold">
+                            Instructor Comment (optional)
+                          </Label>
+                          <Textarea
+                            id="comment-admin"
+                            placeholder="Feedback for candidate..."
+                            value={commentInput}
+                            onChange={(e) => setCommentInput(e.target.value)}
+                            className="bg-white border-slate-300 text-slate-900 min-h-[70px]"
+                          />
+                        </div>
+
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-slate-800 text-sm font-semibold">Instructor Signature *</Label>
+                            {savedAdoptedSignature && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="text-xs text-sky-700 hover:text-sky-800 p-0 h-auto font-medium"
+                                onClick={() => setUseAdoptedSignature(!useAdoptedSignature)}
+                              >
+                                {useAdoptedSignature ? 'Draw New Signature' : 'Use Adopted Signature'}
+                              </Button>
+                            )}
+                          </div>
+
+                          {useAdoptedSignature && savedAdoptedSignature ? (
+                            <div className="p-3 border border-emerald-300 bg-emerald-50 rounded-lg space-y-2 text-center">
+                              <span className="text-xs text-emerald-800 font-bold block">✓ Adopted Signature Selected</span>
+                              <div className="bg-white p-2 rounded inline-block shadow-2xs border border-slate-200">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={savedAdoptedSignature}
+                                  alt="Adopted Instructor Signature"
+                                  className="max-h-20 max-w-xs object-contain mx-auto"
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              <SignaturePad onSave={setSignatureData} />
+                              <label className="flex items-center gap-2 pt-1 text-xs text-slate-700 cursor-pointer font-medium">
+                                <input
+                                  type="checkbox"
+                                  checked={adoptSignatureCheckbox}
+                                  onChange={(e) => setAdoptSignatureCheckbox(e.target.checked)}
+                                  className="rounded border-slate-300 bg-white text-sky-600 focus:ring-sky-500"
+                                />
+                                <span>Adopt and save this signature for future quick sign-offs</span>
+                              </label>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+
+                  <CardFooter className="pt-2 flex justify-end gap-3 pb-4">
+                    {isEvaluatingThis ? (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setActiveReq(null)}
+                          className="border-slate-300 text-slate-600 hover:bg-slate-100"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          size="sm"
+                          disabled={isSubmittingEval || !signatureData}
+                          onClick={handleApprove}
+                          className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-xs"
+                        >
+                          {isSubmittingEval ? 'Approving...' : 'Confirm & Sign'}
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        size="sm"
+                        onClick={() => startEvaluation(req)}
+                        className="bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-xs"
+                      >
+                        Evaluate & Sign
+                      </Button>
+                    )}
+                  </CardFooter>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Section Progress Breakdown Table (Clickable Accordion) */}
       <Card className="border border-slate-200/80 bg-white shadow-xs">
@@ -316,35 +597,52 @@ export default function AdminCandidateReportPage({ params }: { params: Promise<{
                     {!secData || !secData.items || secData.items.length === 0 ? (
                       <div className="text-xs text-slate-500 italic py-2 text-center">No requirement items in this section.</div>
                     ) : (
-                      secData.items.map((item) => (
-                        <div
-                          key={item.id}
-                          className="p-3 bg-slate-50/80 rounded-lg border border-slate-200/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs"
-                        >
-                          <div>
-                            <div className="font-bold text-slate-800">{item.title}</div>
-                            <div className="text-[11px] text-slate-500 mt-0.5">
-                              Required count: {item.requiredCount} {item.requiredCount > 1 ? `(${item.approvedCount}/${item.requiredCount} approved)` : ''}
+                      secData.items.map((item) => {
+                        const pendingForThisItem = pendingList.find((r) => r.itemId === item.id);
+
+                        return (
+                          <div
+                            key={item.id}
+                            className="p-3 bg-slate-50/80 rounded-lg border border-slate-200/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs"
+                          >
+                            <div>
+                              <div className="font-bold text-slate-800">{item.title}</div>
+                              <div className="text-[11px] text-slate-500 mt-0.5">
+                                Required count: {item.requiredCount} {item.requiredCount > 1 ? `(${item.approvedCount}/${item.requiredCount} approved)` : ''}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 self-end sm:self-auto">
+                              {item.status === 'APPROVED' ? (
+                                <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-300 text-[10px] font-semibold">
+                                  ✓ APPROVED
+                                </Badge>
+                              ) : item.status === 'PENDING' ? (
+                                <Badge className="bg-amber-50 text-amber-700 border border-amber-300 text-[10px] font-semibold">
+                                  ⏳ PENDING
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="border-slate-300 text-slate-500 text-[10px]">
+                                  NOT STARTED
+                                </Badge>
+                              )}
+
+                              {pendingForThisItem && (
+                                <Button
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    startEvaluation(pendingForThisItem);
+                                  }}
+                                  className="h-7 text-[11px] bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-2xs"
+                                >
+                                  Evaluate & Sign
+                                </Button>
+                              )}
                             </div>
                           </div>
-
-                          <div className="flex items-center gap-2 self-end sm:self-auto">
-                            {item.status === 'APPROVED' ? (
-                              <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-300 text-[10px] font-semibold">
-                                ✓ APPROVED
-                              </Badge>
-                            ) : item.status === 'PENDING' ? (
-                              <Badge className="bg-amber-50 text-amber-700 border border-amber-300 text-[10px] font-semibold">
-                                ⏳ PENDING
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="border-slate-300 text-slate-500 text-[10px]">
-                                NOT STARTED
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      ))
+                        );
+                      })
                     )}
                   </div>
                 )}
@@ -464,11 +762,11 @@ export default function AdminCandidateReportPage({ params }: { params: Promise<{
               Cancel
             </Button>
             <Button
-              disabled={isSubmitting || !voidReason.trim()}
+              disabled={isSubmittingVoid || !voidReason.trim()}
               onClick={handleVoidRequest}
               className="bg-red-600 hover:bg-red-500 text-white font-bold shadow-xs"
             >
-              {isSubmitting ? 'Voiding...' : 'Confirm Void Action'}
+              {isSubmittingVoid ? 'Voiding...' : 'Confirm Void Action'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -35,7 +35,17 @@ export const GET = createApiHandler({
 
       const { progress } = await getCourseProgress(studentCourse.id, tx);
 
-      // Fetch pending requests assigned to this instructor for this student
+      // Query pending sign-off requests for this student.
+      // Admins see all pending requests for the candidate; Instructors see requests assigned to them or candidate requests.
+      const pendingConditions = [
+        eq(signoffRequests.courseId, studentCourse.id),
+        eq(signoffRequests.status, 'PENDING'),
+      ];
+
+      if (session.role === 'INSTRUCTOR') {
+        pendingConditions.push(eq(signoffRequests.instructorId, session.userId));
+      }
+
       const pendingRequests = await tx
         .select({
           request: signoffRequests,
@@ -43,13 +53,7 @@ export const GET = createApiHandler({
         })
         .from(signoffRequests)
         .innerJoin(requirementItems, eq(signoffRequests.itemId, requirementItems.id))
-        .where(
-          and(
-            eq(signoffRequests.courseId, studentCourse.id),
-            eq(signoffRequests.instructorId, session.userId),
-            eq(signoffRequests.status, 'PENDING')
-          )
-        );
+        .where(and(...pendingConditions));
 
       // Fetch approved sign-off records for this student
       const approvedRequests = await tx
