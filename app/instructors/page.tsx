@@ -15,6 +15,7 @@ interface InstructorOverview {
   firstName: string;
   lastName: string;
   email: string;
+  role?: string;
   padiNumber: string | null;
   isActive: boolean;
 }
@@ -31,6 +32,7 @@ export default function InstructorsPage() {
   const [email, setEmail] = useState('');
   const [padiNumber, setPadiNumber] = useState('');
   const [password, setPassword] = useState('Password123!');
+  const [makeAdmin, setMakeAdmin] = useState(false);
   const [isSubmittingInst, setIsSubmittingInst] = useState(false);
   const [instError, setInstError] = useState<string | null>(null);
 
@@ -88,6 +90,7 @@ export default function InstructorsPage() {
           email,
           padiNumber,
           password,
+          role: makeAdmin ? 'ADMIN' : 'INSTRUCTOR',
         }),
       });
 
@@ -104,6 +107,7 @@ export default function InstructorsPage() {
       setEmail('');
       setPadiNumber('');
       setPassword('Password123!');
+      setMakeAdmin(false);
       loadData();
     } catch {
       setInstError('Failed to create instructor');
@@ -187,7 +191,7 @@ export default function InstructorsPage() {
         <CardHeader>
           <CardTitle className="text-lg font-bold text-slate-800">PADI Instructor Roster</CardTitle>
           <CardDescription className="text-slate-500 text-sm">
-            Active teaching staff and evaluation sign-off instructors
+            Active teaching staff, evaluation sign-off instructors, and administrators
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -202,7 +206,7 @@ export default function InstructorsPage() {
                   <TableHead className="text-slate-700 font-bold">Instructor Name</TableHead>
                   <TableHead className="text-slate-700 font-bold">Email</TableHead>
                   <TableHead className="text-slate-700 font-bold">PADI Pro #</TableHead>
-                  <TableHead className="text-slate-700 font-bold">Status</TableHead>
+                  <TableHead className="text-slate-700 font-bold">Role & Status</TableHead>
                   {isAdmin && <TableHead className="text-right text-slate-700 font-bold">Actions</TableHead>}
                 </TableRow>
               </TableHeader>
@@ -217,15 +221,26 @@ export default function InstructorsPage() {
                       {inst.padiNumber || 'N/A'}
                     </TableCell>
                     <TableCell>
-                      {inst.isActive ? (
-                        <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-300 font-semibold">
-                          ACTIVE STAFF
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="border-slate-300 text-slate-500">
-                          INACTIVE
-                        </Badge>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {inst.role === 'ADMIN' ? (
+                          <Badge className="bg-purple-100 text-purple-800 border border-purple-300 font-bold">
+                            ADMINISTRATOR
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-sky-50 text-sky-700 border border-sky-300 font-semibold">
+                            INSTRUCTOR
+                          </Badge>
+                        )}
+                        {inst.isActive ? (
+                          <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-300 font-semibold">
+                            ACTIVE
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="border-slate-300 text-slate-500">
+                            INACTIVE
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     {isAdmin && (
                       <TableCell className="text-right">
@@ -264,9 +279,9 @@ export default function InstructorsPage() {
       <Dialog open={showAddInstModal} onOpenChange={setShowAddInstModal}>
         <DialogContent className="border-slate-200 bg-white text-slate-900 max-w-md shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-extrabold text-slate-900">Add New Staff Instructor</DialogTitle>
+            <DialogTitle className="text-xl font-extrabold text-slate-900">Add New Staff Member</DialogTitle>
             <DialogDescription className="text-slate-600 text-sm">
-              Create credentials for an authorized PADI Instructor to evaluate DMT candidates.
+              Create credentials for an authorized PADI Instructor or Administrator.
             </DialogDescription>
           </DialogHeader>
 
@@ -302,7 +317,7 @@ export default function InstructorsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-slate-700 text-xs font-semibold">Instructor Email *</Label>
+              <Label htmlFor="email" className="text-slate-700 text-xs font-semibold">Staff Email *</Label>
               <Input
                 id="email"
                 type="email"
@@ -336,6 +351,25 @@ export default function InstructorsPage() {
               />
             </div>
 
+            {/* Toggle Button for Admin Privileges */}
+            <div className="flex items-center justify-between p-3 bg-purple-50/80 border border-purple-200 rounded-xl mt-2">
+              <div className="space-y-0.5 pr-2">
+                <Label htmlFor="makeAdminToggle" className="text-xs font-bold text-purple-900 cursor-pointer block">
+                  Grant Administrator Privileges (Role: ADMIN)
+                </Label>
+                <p className="text-[11px] text-purple-700 leading-tight">
+                  Allows user to access admin management, add staff, reset passwords, and restore deleted DMTs
+                </p>
+              </div>
+              <input
+                id="makeAdminToggle"
+                type="checkbox"
+                checked={makeAdmin}
+                onChange={(e) => setMakeAdmin(e.target.checked)}
+                className="w-5 h-5 accent-purple-600 rounded cursor-pointer shrink-0"
+              />
+            </div>
+
             <DialogFooter className="pt-2">
               <Button
                 type="button"
@@ -350,7 +384,7 @@ export default function InstructorsPage() {
                 disabled={isSubmittingInst}
                 className="bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-xs"
               >
-                {isSubmittingInst ? 'Creating Instructor...' : 'Create Instructor Account'}
+                {isSubmittingInst ? 'Creating Staff Account...' : 'Create Staff Account'}
               </Button>
             </DialogFooter>
           </form>
@@ -361,7 +395,7 @@ export default function InstructorsPage() {
       <Dialog open={!!activeResetUser} onOpenChange={(open) => !open && setActiveResetUser(null)}>
         <DialogContent className="border-slate-200 bg-white text-slate-900 max-w-md shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-extrabold text-slate-900">Reset Instructor Password</DialogTitle>
+            <DialogTitle className="text-xl font-extrabold text-slate-900">Reset Staff Password</DialogTitle>
             <DialogDescription className="text-slate-600 text-sm">
               Enter a new password for staff instructor {activeResetUser?.name}.
             </DialogDescription>

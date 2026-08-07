@@ -1,8 +1,7 @@
 import { z } from 'zod';
 import { createApiHandler, ApiError } from '@/lib/api/handler';
-import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, or } from 'drizzle-orm';
 import { hashPassword } from '@/lib/auth/password';
 
 export const GET = createApiHandler({
@@ -16,6 +15,7 @@ export const GET = createApiHandler({
         firstName: users.firstName,
         lastName: users.lastName,
         email: users.email,
+        role: users.role,
         padiNumber: users.padiNumber,
         isActive: users.isActive,
       })
@@ -23,7 +23,7 @@ export const GET = createApiHandler({
       .where(
         and(
           eq(users.diveCenterId, session.diveCenterId),
-          eq(users.role, 'INSTRUCTOR'),
+          or(eq(users.role, 'INSTRUCTOR'), eq(users.role, 'ADMIN')),
           eq(users.isActive, true)
         )
       );
@@ -38,6 +38,7 @@ const createInstructorSchema = z.object({
   email: z.string().email('Invalid email address'),
   padiNumber: z.string().min(1, 'PADI Number is required'),
   password: z.string().min(6, 'Password must be at least 6 characters').default('Password123!'),
+  role: z.enum(['INSTRUCTOR', 'ADMIN']).optional().default('INSTRUCTOR'),
 });
 
 export const POST = createApiHandler({
@@ -65,7 +66,7 @@ export const POST = createApiHandler({
         diveCenterId: session.diveCenterId,
         email: input.email.toLowerCase().trim(),
         passwordHash,
-        role: 'INSTRUCTOR',
+        role: input.role || 'INSTRUCTOR',
         firstName: input.firstName.trim(),
         lastName: input.lastName.trim(),
         padiNumber: input.padiNumber.trim(),
@@ -82,6 +83,7 @@ export const POST = createApiHandler({
         firstName: created.firstName,
         lastName: created.lastName,
         email: created.email,
+        role: created.role,
         padiNumber: created.padiNumber,
       },
     };
