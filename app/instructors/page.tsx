@@ -167,7 +167,8 @@ export default function InstructorsPage() {
   const isAdmin = user?.role === 'ADMIN';
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-8 space-y-6 max-w-6xl mx-auto pb-20 sm:pb-8 md:pl-72">
+    <div className="min-h-screen bg-slate-50 text-slate-900 md:pl-64">
+      <div className="p-4 sm:p-8 space-y-6 max-w-7xl mx-auto pb-20 sm:pb-8">
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-sky-700 via-cyan-600 to-teal-600 p-6 sm:p-8 rounded-2xl text-white shadow-lg shadow-sky-600/15">
         <div>
@@ -450,5 +451,6 @@ export default function InstructorsPage() {
         </DialogContent>
       </Dialog>
     </div>
-  );
+  </div>
+);
 }
