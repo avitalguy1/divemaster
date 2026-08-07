@@ -1,9 +1,17 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { getCourseProgress, getCourseItems } from '@/lib/db/queries/courses';
+import { diveCenters } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
 
 export async function generateEvaluationPdf(courseId: string, txClient?: any): Promise<Uint8Array> {
-  const { course, progress } = await getCourseProgress(courseId, txClient);
-  const sections = await getCourseItems(courseId, txClient);
+  const tx = txClient || db;
+  const { course, progress } = await getCourseProgress(courseId, tx);
+  const sections = await getCourseItems(courseId, tx);
+
+  // Fetch Dive Center name
+  const dcRows = await tx.select().from(diveCenters).where(eq(diveCenters.id, course.diveCenterId));
+  const dcName = dcRows[0]?.name || 'Underwater Vision';
 
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -21,10 +29,10 @@ export async function generateEvaluationPdf(courseId: string, txClient?: any): P
     color: rgb(0.06, 0.09, 0.16),
   });
 
-  page.drawText('PADI DIVEMASTER CANDIDATE EVALUATION FORM', {
+  page.drawText(`${dcName.toUpperCase()} - PADI DIVEMASTER EVALUATION FORM`, {
     x: 20,
     y: height - 30,
-    size: 13,
+    size: 12,
     font: boldFont,
     color: rgb(1, 1, 1),
   });
@@ -102,10 +110,8 @@ export async function generateEvaluationPdf(courseId: string, txClient?: any): P
           ? rgb(0.8, 0.4, 0)
           : rgb(0.4, 0.4, 0.4);
 
-      // Truncate long titles cleanly for column layout
       const truncatedTitle = item.title.length > 44 ? `${item.title.substring(0, 42)}...` : item.title;
 
-      // Column 1: Item Title
       page.drawText(`• ${truncatedTitle}`, {
         x: 25,
         y: yPosition,
@@ -114,7 +120,6 @@ export async function generateEvaluationPdf(courseId: string, txClient?: any): P
         color: rgb(0.1, 0.1, 0.1),
       });
 
-      // Column 2: Status
       page.drawText(statusText, {
         x: 285,
         y: yPosition,
@@ -123,7 +128,6 @@ export async function generateEvaluationPdf(courseId: string, txClient?: any): P
         color: statusColor,
       });
 
-      // Column 3 & 4: Instructor Name & ID Column + Score Column
       if (latestApproval) {
         const instName = latestApproval.instructorNameSnapshot || 'Instructor';
         const instPadi = latestApproval.instructorPadiSnapshot ? ` (${latestApproval.instructorPadiSnapshot})` : '';
@@ -132,7 +136,6 @@ export async function generateEvaluationPdf(courseId: string, txClient?: any): P
 
         const scoreText = latestApproval.score ? `${latestApproval.score}/5` : 'Pass';
 
-        // Column 3: Instructor Name & ID
         page.drawText(truncatedInst, {
           x: 365,
           y: yPosition,
@@ -141,7 +144,6 @@ export async function generateEvaluationPdf(courseId: string, txClient?: any): P
           color: rgb(0.1, 0.3, 0.6),
         });
 
-        // Column 4: Score
         page.drawText(scoreText, {
           x: 520,
           y: yPosition,
@@ -161,7 +163,7 @@ export async function generateEvaluationPdf(courseId: string, txClient?: any): P
   }
 
   // Footer
-  page.drawText(`Generated on ${new Date().toISOString().split('T')[0]} - Digital Candidate Evaluation Form`, {
+  page.drawText(`Generated on ${new Date().toISOString().split('T')[0]} - ${dcName} Candidate Evaluation Form`, {
     x: 20,
     y: 20,
     size: 8,

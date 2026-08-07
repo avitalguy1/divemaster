@@ -1,6 +1,6 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { users, courses, studentProfiles, diveCenters, requirementItems, requirementSections, signoffRequests } from '@/lib/db/schema';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { getCourseProgress } from '@/lib/db/queries/courses';
 
 export async function generateSkillGapReportPdf(
@@ -12,7 +12,7 @@ export async function generateSkillGapReportPdf(
 
   // Fetch Dive Center info
   const dcRows = await tx.select().from(diveCenters).where(eq(diveCenters.id, diveCenterId));
-  const dcName = dcRows[0]?.name || 'PADI Dive Center';
+  const dcName = dcRows[0]?.name || 'Underwater Vision';
 
   // Fetch target requirement item and its section
   const itemRows = await tx
@@ -167,7 +167,7 @@ export async function generateSkillGapReportPdf(
     yPos -= 20;
   }
 
-  page.drawText('PADI Divemaster Candidate Skill Gap Report • Confidential Training Audit', {
+  page.drawText(`${dcName} • PADI Divemaster Candidate Skill Gap Report`, {
     x: 20,
     y: 20,
     size: 7.5,

@@ -8,7 +8,7 @@ export async function generateMasterDmtReportPdf(diveCenterId: string, txClient?
 
   // Fetch Dive Center info
   const dcRows = await tx.select().from(diveCenters).where(eq(diveCenters.id, diveCenterId));
-  const dcName = dcRows[0]?.name || 'PADI Dive Center';
+  const dcName = dcRows[0]?.name || 'Underwater Vision';
 
   // Fetch all DMT candidate users and profiles at this dive center
   const students = await tx
@@ -133,7 +133,7 @@ export async function generateMasterDmtReportPdf(diveCenterId: string, txClient?
   }
 
   // Footer Page Number
-  page.drawText('PADI Divemaster Candidate Information and Evaluation Form • Confidential Record', {
+  page.drawText(`${dcName} • PADI Divemaster Candidate Information and Evaluation Form`, {
     x: 20,
     y: 20,
     size: 7.5,
