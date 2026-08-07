@@ -241,7 +241,7 @@ export default function CandidateDetailPage({ params }: { params: Promise<{ stud
   const percent = progress?.percentComplete || candidate.percentComplete || 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-8 space-y-6 max-w-6xl mx-auto">
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-8 space-y-6 max-w-6xl mx-auto pb-20 sm:pb-8 md:pl-72">
       {/* Header Navigation & Candidate Info */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-sky-700 via-cyan-600 to-teal-600 p-6 sm:p-8 rounded-2xl text-white shadow-lg shadow-sky-600/15">
         <div>
