@@ -202,6 +202,17 @@ export function Navbar() {
                 <span className="text-base leading-none">👨‍🏫</span>
                 <span className="mt-0.5">Instructors</span>
               </Link>
+
+              {/* Admin/Instructor Link 4: Report */}
+              <Link
+                href="/reports"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[11px] font-bold ${
+                  pathname === '/reports' ? 'text-sky-600' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span className="text-base leading-none">📊</span>
+                <span className="mt-0.5">Report</span>
+              </Link>
             </>
           )}
         </div>

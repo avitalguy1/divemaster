@@ -1,5 +1,5 @@
 import { createApiHandler, ApiError } from '@/lib/api/handler';
-import { users, courses, signoffRequests, requirementItems } from '@/lib/db/schema';
+import { users, courses, signoffRequests, requirementItems, studentProfiles } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { getCourseProgress } from '@/lib/db/queries/courses';
 
@@ -9,15 +9,22 @@ export const GET = createApiHandler({
   handler: async ({ session, tx }) => {
     if (!session) throw new ApiError(401, 'UNAUTHENTICATED', 'Authentication required');
 
-    // Fetch all students at dive center (including active and soft-deleted)
-    const studentUsers = await tx
-      .select()
+    // Fetch all students at dive center with their profiles
+    const studentRows = await tx
+      .select({
+        user: users,
+        profile: studentProfiles,
+      })
       .from(users)
+      .leftJoin(studentProfiles, eq(users.id, studentProfiles.userId))
       .where(and(eq(users.diveCenterId, session.diveCenterId), eq(users.role, 'STUDENT')));
 
     const candidatesList = [];
 
-    for (const student of studentUsers) {
+    for (const item of studentRows) {
+      const student = item.user;
+      const profile = item.profile;
+
       const studentCourseRows = await tx
         .select()
         .from(courses)
@@ -63,6 +70,7 @@ export const GET = createApiHandler({
         studentId: student.id,
         studentName: `${student.firstName} ${student.lastName}`,
         email: student.email,
+        country: profile?.country || 'N/A',
         courseId: studentCourse.id,
         isActive: student.isActive,
         isArchived: studentCourse.isArchived || false,
