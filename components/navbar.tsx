@@ -67,9 +67,11 @@ export function Navbar() {
       ? '/admin'
       : '/dashboard';
 
+  const isStudent = user?.role === 'STUDENT';
   const isHomeActive = pathname === '/dashboard' || pathname === '/instructor' || pathname === '/admin';
+  const isRequestsActive = pathname.startsWith('/dashboard/requests');
   const isDmtsActive = pathname.includes('/candidates') || pathname.includes('/requests');
-  const isInstructorsActive = pathname.includes('/inbox');
+  const isInstructorsActive = pathname === '/instructors';
 
   return (
     <>
@@ -132,37 +134,76 @@ export function Navbar() {
       {/* Mobile Bottom Navigation Bar (Visible on Mobile Screens < 640px) */}
       {user && (
         <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-lg flex justify-around items-center h-14 px-2">
-          <Link
-            href={homeHref}
-            className={`flex flex-col items-center justify-center flex-1 py-1 text-[11px] font-bold ${
-              isHomeActive ? 'text-sky-600' : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <span className="text-base leading-none">🏠</span>
-            <span className="mt-0.5">Home</span>
-          </Link>
+          {isStudent ? (
+            <>
+              {/* Student Link 1: Home */}
+              <Link
+                href="/dashboard"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[11px] font-bold ${
+                  pathname === '/dashboard' ? 'text-sky-600' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span className="text-base leading-none">🏠</span>
+                <span className="mt-0.5">Home</span>
+              </Link>
 
-          <Link
-            href={user.role === 'ADMIN' ? '/admin' : user.role === 'INSTRUCTOR' ? '/instructor' : '/dashboard'}
-            className={`flex flex-col items-center justify-center flex-1 py-1 text-[11px] font-bold ${
-              isDmtsActive ? 'text-sky-600' : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <span className="text-base leading-none">🤿</span>
-            <span className="mt-0.5">DMTs</span>
-          </Link>
+              {/* Student Link 2: My Requests */}
+              <Link
+                href="/dashboard/requests"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[11px] font-bold ${
+                  isRequestsActive ? 'text-sky-600' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span className="text-base leading-none">📋</span>
+                <span className="mt-0.5">My Requests</span>
+              </Link>
 
-          <Link
-            href="/instructors"
-            className={`flex flex-col items-center justify-center flex-1 py-1 text-[11px] font-bold ${
-              pathname === '/instructors'
-                ? 'text-sky-600'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <span className="text-base leading-none">👨‍🏫</span>
-            <span className="mt-0.5">Instructors</span>
-          </Link>
+              {/* Student Link 3: My Report (Export PDF) */}
+              <a
+                href="/api/courses/me/pdf"
+                download
+                className="flex flex-col items-center justify-center flex-1 py-1 text-[11px] font-bold text-slate-500 hover:text-sky-600"
+              >
+                <span className="text-base leading-none">📄</span>
+                <span className="mt-0.5">My Report</span>
+              </a>
+            </>
+          ) : (
+            <>
+              {/* Admin/Instructor Link 1: Home */}
+              <Link
+                href={homeHref}
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[11px] font-bold ${
+                  isHomeActive ? 'text-sky-600' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span className="text-base leading-none">🏠</span>
+                <span className="mt-0.5">Home</span>
+              </Link>
+
+              {/* Admin/Instructor Link 2: DMTs */}
+              <Link
+                href={user.role === 'ADMIN' ? '/admin' : '/instructor'}
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[11px] font-bold ${
+                  isDmtsActive ? 'text-sky-600' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span className="text-base leading-none">🤿</span>
+                <span className="mt-0.5">DMTs</span>
+              </Link>
+
+              {/* Admin/Instructor Link 3: Instructors */}
+              <Link
+                href="/instructors"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[11px] font-bold ${
+                  isInstructorsActive ? 'text-sky-600' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span className="text-base leading-none">👨‍🏫</span>
+                <span className="mt-0.5">Instructors</span>
+              </Link>
+            </>
+          )}
         </div>
       )}
     </>
