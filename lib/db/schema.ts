@@ -48,6 +48,7 @@ export const users = pgTable('users', {
   padiNumber: text('padi_number'),
   phone: text('phone'),
   locale: text('locale').notNull().default('en'),
+  reduceCelebrations: boolean('reduce_celebrations').notNull().default(false),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -178,6 +179,9 @@ export const signoffRequests = pgTable('signoff_requests', {
   voidedAt: timestamp('voided_at', { withTimezone: true }),
   voidedBy: uuid('voided_by').references(() => users.id),
   voidReason: text('void_reason'),
+
+  // celebration tracking
+  celebratedAt: timestamp('celebrated_at', { withTimezone: true }),
 
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [

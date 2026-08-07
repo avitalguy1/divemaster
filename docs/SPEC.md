@@ -205,6 +205,8 @@ Every approval stores: instructor name (snapshot), instructor PADI No. (snapshot
 
 **Signature storage:** PNG data URI in a `signatures` table (or object storage with a key reference — decide at build time; the schema supports both).
 
+Note: Added `celebrated_at TIMESTAMPTZ NULL` to `signoff_requests` for server-side celebration replay protection.
+
 ---
 
 ## 7. PDF export

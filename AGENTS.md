@@ -29,6 +29,7 @@ Source of truth documents in `docs/`:
 | Testing | Vitest for units, Playwright for E2E |
 | Signature capture | `react-signature-canvas` or a plain `<canvas>` implementation |
 | PDF export | `pdf-lib` |
+| Animation | `canvas-confetti` (approved exception for student celebrations) |
 
 Node 20+. Package manager: `pnpm`.
 

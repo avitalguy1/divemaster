@@ -95,9 +95,15 @@ The most important phase. One requirement item, end to end. Get this right and t
 - [ ] **T4.9** Instructor inbox with `badge` count, and an all-students `table` with `progress` bars. Confirm: every role can see every student (SPEC §1).
 - [ ] **T4.10** `POST /api/courses/:id/complete` — 422 listing every failing rule unless all 53 units are approved and all rules pass.
 - [ ] **T4.11** In-app notifications: list, unread badge, mark read, mark all read.
-- [ ] **T4.12** Tests: progress engine against fixture courses at 0%, partial, and 100%; each rule failing in isolation; the X3 item showing 1/3, 2/3, 3/3 correctly.
+- [ ] **T4.13** Add `celebrated_at TIMESTAMPTZ NULL` to `signoff_requests` in Drizzle schema & generate migration. Update `docs/SPEC.md` §6.
+- [ ] **T4.14** `lib/celebrations/tier.ts` — pure server-side tier calculator returning `STANDARD`, `SECTION_COMPLETE`, `MILESTONE` (25%, 50%, 75%), or `COURSE_COMPLETE` (requires 53/53 & all rules to pass). Excludes PREREQ items. Unit test suite.
+- [ ] **T4.15** API Endpoints: `GET /api/celebrations/pending` (uncelebrated approved requests for calling student) and `POST /api/celebrations/ack` (idempotently stamps `celebrated_at = NOW()`). API unit/integration test suite.
+- [ ] **T4.16** Install `canvas-confetti` dependency (record in `AGENTS.md` stack table). Build `<CelebrationProvider>` context and `useCelebration()` hook with RAF handle cleanup and particle capping.
+- [ ] **T4.17** Accessibility & Settings: `prefers-reduced-motion: reduce` static badge/toast fallback, `aria-live="polite"` screen reader region, and user settings "Reduce celebrations" toggle.
+- [ ] **T4.18** Student layout integration & instructor flow verification (instructor approval receives standard toast only).
+- [ ] **T4.19** Playwright E2E tests: approval trigger → student celebration → ACK replay protection → reduced-motion emulation.
 
-🛑 **CHECKPOINT 4** — dashboard screenshots for a 0%, ~40%, and 100% student. Show the skills-workshop grid rejecting a total of 81 and accepting 82.
+🛑 **CHECKPOINT 4** — celebration recordings (390px STANDARD and COURSE_COMPLETE), reduced-motion screenshot, green test suite.
 
 ---
 

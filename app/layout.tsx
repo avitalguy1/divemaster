@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { Navbar } from '@/components/navbar';
 import { InstallPrompt } from '@/components/InstallPrompt';
+import { CelebrationProvider } from '@/components/celebration/celebration-provider';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -52,9 +53,11 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-slate-950 text-slate-100">
         <NextIntlClientProvider messages={messages}>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <InstallPrompt />
+          <CelebrationProvider>
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <InstallPrompt />
+          </CelebrationProvider>
         </NextIntlClientProvider>
       </body>
     </html>

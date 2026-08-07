@@ -1,6 +1,7 @@
 import { createApiHandler, ApiError } from '@/lib/api/handler';
 import { users, diveCenters } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { z } from 'zod';
 
 export const GET = createApiHandler({
   requireAuth: true,
@@ -31,12 +32,44 @@ export const GET = createApiHandler({
         padiNumber: user.padiNumber,
         phone: user.phone,
         locale: user.locale,
+        reduceCelebrations: user.reduceCelebrations || false,
       },
       diveCenter: diveCenter ? {
         id: diveCenter.id,
         name: diveCenter.name,
         timezone: diveCenter.timezone,
       } : null,
+    };
+  },
+});
+
+const patchSchema = z.object({
+  reduceCelebrations: z.boolean().optional(),
+});
+
+export const PATCH = createApiHandler({
+  requireAuth: true,
+  schema: patchSchema,
+  handler: async ({ session, input, tx }) => {
+    if (!session) {
+      throw new ApiError(401, 'UNAUTHENTICATED', 'Authentication required');
+    }
+
+    const updated = await tx
+      .update(users)
+      .set({
+        ...(input.reduceCelebrations !== undefined ? { reduceCelebrations: input.reduceCelebrations } : {}),
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, session.userId))
+      .returning();
+
+    return {
+      success: true,
+      user: {
+        id: updated[0].id,
+        reduceCelebrations: updated[0].reduceCelebrations,
+      },
     };
   },
 });
