@@ -1,27 +1,40 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { db } from '../lib/db';
 import { users, courses, signoffRequests, requirementItems, requirementSections } from '../lib/db/schema';
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq, and, notInArray, ne } from 'drizzle-orm';
 
 describe('Celebrations API Scoping & Idempotency Tests', () => {
   let student1: any;
-  let student2: any;
   let instructor: any;
   let course1: any;
   let testItem: any;
 
   beforeAll(async () => {
     student1 = (await db.select().from(users).where(eq(users.email, 'student0@example.com')))[0];
-    student2 = (await db.select().from(users).where(eq(users.email, 'student40@example.com')))[0];
     instructor = (await db.select().from(users).where(eq(users.role, 'INSTRUCTOR')))[0];
     course1 = (await db.select().from(courses).where(eq(courses.studentId, student1.id)))[0];
 
-    const nonPrereqSec = (await db.select().from(requirementSections).where(eq(requirementSections.code, 'WATERSKILLS')))[0];
-    testItem = (await db.select().from(requirementItems).where(eq(requirementItems.sectionId, nonPrereqSec.id)))[0];
+    const approved = await db
+      .select({ itemId: signoffRequests.itemId })
+      .from(signoffRequests)
+      .where(and(eq(signoffRequests.courseId, course1.id), eq(signoffRequests.status, 'APPROVED')));
+
+    const approvedIds = approved.map((a) => a.itemId);
+
+    const nonPrereqItems = await db
+      .select({ item: requirementItems })
+      .from(requirementItems)
+      .innerJoin(requirementSections, eq(requirementItems.sectionId, requirementSections.id))
+      .where(
+        approvedIds.length > 0
+          ? and(ne(requirementSections.code, 'PREREQ'), notInArray(requirementItems.id, approvedIds))
+          : ne(requirementSections.code, 'PREREQ')
+      );
+
+    testItem = nonPrereqItems[0].item;
   });
 
   it('correctly creates an approved uncelebrated request and stamps celebrated_at on ACK', async () => {
-    // 1. Create approved uncelebrated request for student 1
     const newReqs = await db
       .insert(signoffRequests)
       .values({

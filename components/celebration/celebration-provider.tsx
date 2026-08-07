@@ -1,7 +1,6 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import confetti from 'canvas-confetti';
 import { CelebrationTier } from '@/lib/celebrations/tier';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -27,7 +26,7 @@ export function CelebrationProvider({ children }: { children: React.ReactNode })
   const [activeToast, setActiveToast] = useState<{ title: string; message: string; tier: CelebrationTier } | null>(null);
   const [ariaAnnouncement, setAriaAnnouncement] = useState('');
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const confettiInstanceRef = useRef<confetti.CreateTypes | null>(null);
+  const confettiInstanceRef = useRef<any>(null);
 
   // Check prefers-reduced-motion
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -41,18 +40,29 @@ export function CelebrationProvider({ children }: { children: React.ReactNode })
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  // Initialize canvas-confetti instance with explicit canvas reference and cleanup
+  // Initialize canvas-confetti instance with dynamic import for SSR safety
   useEffect(() => {
+    let isMounted = true;
     if (canvasRef.current && !confettiInstanceRef.current) {
-      confettiInstanceRef.current = confetti.create(canvasRef.current, {
-        resize: true,
-        useWorker: true,
-      });
+      import('canvas-confetti')
+        .then((module) => {
+          const createConfetti = module.default || module;
+          if (isMounted && canvasRef.current && typeof createConfetti.create === 'function') {
+            confettiInstanceRef.current = createConfetti.create(canvasRef.current, {
+              resize: true,
+              useWorker: true,
+            });
+          }
+        })
+        .catch(() => {});
     }
 
     return () => {
+      isMounted = false;
       if (confettiInstanceRef.current) {
-        confettiInstanceRef.current.reset();
+        try {
+          confettiInstanceRef.current.reset();
+        } catch {}
         confettiInstanceRef.current = null;
       }
     };
@@ -77,7 +87,7 @@ export function CelebrationProvider({ children }: { children: React.ReactNode })
     checkPendingCelebrations();
   }, []);
 
-  const runCelebrationSequence = (data: {
+  const runCelebrationSequence = async (data: {
     tier: CelebrationTier;
     primaryRequest: any;
     uncelebratedCount: number;
@@ -119,7 +129,21 @@ export function CelebrationProvider({ children }: { children: React.ReactNode })
     const isMobile = window.innerWidth < 640;
     const particleCount = isMobile ? 35 : 80;
 
-    const fire = confettiInstanceRef.current || confetti;
+    let fire = confettiInstanceRef.current;
+    if (!fire) {
+      try {
+        const confettiMod = await import('canvas-confetti');
+        const defaultFn = confettiMod.default || confettiMod;
+        fire = typeof defaultFn === 'function' ? defaultFn : null;
+      } catch {}
+    }
+
+    if (typeof fire !== 'function') {
+      setActiveToast({ title: 'Sign-off Approved', message: toastMessage, tier });
+      ackCelebrations(pendingIds);
+      setTimeout(() => setActiveToast(null), 3000);
+      return;
+    }
 
     if (tier === 'STANDARD') {
       fire({
