@@ -8,13 +8,15 @@ import { getCourseProgress } from '../lib/db/queries/courses';
 describe('Mentor Assignment & Prerequisites Domain Rules Test', () => {
   let studentUser: any;
   let instructorUser: any;
-  let diveCenter: any;
   let studentCourse: any;
 
   beforeAll(async () => {
     studentUser = (await db.select().from(users).where(eq(users.email, 'student0@example.com')))[0];
     instructorUser = (await db.select().from(users).where(eq(users.role, 'INSTRUCTOR')))[0];
     studentCourse = (await db.select().from(courses).where(eq(courses.studentId, studentUser.id)))[0];
+
+    // Clean up signoff requests for this student course to test clean mentor assignment
+    await db.delete(signoffRequests).where(eq(signoffRequests.courseId, studentCourse.id));
   });
 
   it('should assign a mentor instructor to a student and automatically populate prerequisite items into mentor inbox', async () => {
