@@ -170,44 +170,22 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-8 space-y-6 max-w-6xl mx-auto">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-sky-700 via-cyan-600 to-teal-600 p-6 sm:p-8 rounded-2xl text-white shadow-lg shadow-sky-600/15">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Welcome, {user?.firstName || 'DMT Candidate'}!
-          </h1>
-          <div className="flex flex-wrap items-center gap-2 mt-2">
-            <p className="text-sm text-sky-100 font-medium">
-              PADI Divemaster Candidate Evaluation Record
-            </p>
-            {mentor ? (
-              <Badge variant="outline" className="border-white/30 bg-white/15 text-white text-xs backdrop-blur-xs">
-                Mentor: {mentor.firstName} {mentor.lastName} {mentor.padiNumber ? `(${mentor.padiNumber})` : ''}
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="border-amber-300/60 bg-amber-500/20 text-amber-100 text-xs cursor-pointer hover:bg-amber-500/30" onClick={() => setShowMentorModal(true)}>
-                + Select Mentor Instructor
-              </Badge>
-            )}
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-2.5 w-full sm:w-auto">
-          <Link href="/dashboard/requests/new" className="w-full sm:w-auto">
-            <Button className="w-full bg-white text-sky-800 hover:bg-sky-50 font-bold shadow-sm">
-              + Request Sign-off
-            </Button>
-          </Link>
-          <Link href="/dashboard/requests" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full border-white/40 text-white hover:bg-white/10 font-medium">
-              My Requests
-            </Button>
-          </Link>
-          {courseId && (
-            <a href={`/api/courses/${courseId}/pdf`} download className="w-full sm:w-auto">
-              <Button variant="outline" className="w-full border-white/40 text-white hover:bg-white/10 font-medium">
-                Export PDF
-              </Button>
-            </a>
+      <div className="bg-gradient-to-r from-sky-700 via-cyan-600 to-teal-600 p-6 sm:p-8 rounded-2xl text-white shadow-lg shadow-sky-600/15">
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+          Welcome, {user?.firstName || 'DMT Candidate'}!
+        </h1>
+        <div className="flex flex-wrap items-center gap-2 mt-2">
+          <p className="text-sm text-sky-100 font-medium">
+            PADI Divemaster Candidate Evaluation Record
+          </p>
+          {mentor ? (
+            <Badge variant="outline" className="border-white/30 bg-white/15 text-white text-xs backdrop-blur-xs">
+              Mentor: {mentor.firstName} {mentor.lastName} {mentor.padiNumber ? `(${mentor.padiNumber})` : ''}
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="border-amber-300/60 bg-amber-500/20 text-amber-100 text-xs cursor-pointer hover:bg-amber-500/30" onClick={() => setShowMentorModal(true)}>
+              + Select Mentor Instructor
+            </Badge>
           )}
         </div>
       </div>
