@@ -134,6 +134,7 @@ async function main() {
 
     await db.insert(studentProfiles).values({
       userId: stu1.id,
+      instructorId: inst1.id,
       loggedDives: 40,
     });
 
@@ -174,6 +175,7 @@ async function main() {
 
     await db.insert(studentProfiles).values({
       userId: stu2.id,
+      instructorId: inst1.id,
       loggedDives: 45,
     });
 
@@ -245,6 +247,7 @@ async function main() {
         instructorNameSnapshot: `${instructor.firstName} ${instructor.lastName}`,
         instructorPadiSnapshot: instructor.padiNumber,
         signatureId: sigId,
+        celebratedAt: performedAt,
         ...extra,
       }).returning();
     };
