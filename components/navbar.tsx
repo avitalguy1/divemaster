@@ -73,6 +73,7 @@ export function Navbar() {
   const isDmtsActive = pathname.includes('/candidates') || pathname.includes('/requests');
   const isInstructorsActive = pathname === '/instructors';
   const isReportsActive = pathname === '/reports' || pathname === '/dashboard/report';
+  const isPeersActive = pathname === '/dashboard/peers';
 
   return (
     <>
@@ -182,19 +183,59 @@ export function Navbar() {
       <header className={`bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 shadow-xs ${!isStudent && user ? 'md:hidden' : ''}`}>
         <div className="max-w-6xl mx-auto px-4 sm:px-8 h-16 flex justify-between items-center">
           {/* Brand Title & Home Link */}
-          <Link href={homeHref} className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 flex items-center justify-center font-extrabold text-white shadow-sm shadow-sky-500/20">
-              DM
-            </div>
-            <div>
-              <span className="font-extrabold text-slate-900 text-base sm:text-lg tracking-tight block leading-none">
-                Underwater Vision
-              </span>
-              <span className="text-[11px] text-sky-600 font-semibold tracking-wider uppercase">
-                Candidate Evaluation
-              </span>
-            </div>
-          </Link>
+          <div className="flex items-center gap-6">
+            <Link href={homeHref} className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 flex items-center justify-center font-extrabold text-white shadow-sm shadow-sky-500/20">
+                DM
+              </div>
+              <div>
+                <span className="font-extrabold text-slate-900 text-base sm:text-lg tracking-tight block leading-none">
+                  Underwater Vision
+                </span>
+                <span className="text-[11px] text-sky-600 font-semibold tracking-wider uppercase">
+                  Candidate Evaluation
+                </span>
+              </div>
+            </Link>
+
+            {/* Desktop Navigation Links for Students */}
+            {isStudent && (
+              <nav className="hidden sm:flex items-center gap-1 ml-4 border-l border-slate-200 pl-4">
+                <Link
+                  href="/dashboard"
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                    pathname === '/dashboard' ? 'bg-sky-50 text-sky-700' : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  🏠 Home
+                </Link>
+                <Link
+                  href="/dashboard/requests"
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                    isRequestsActive ? 'bg-sky-50 text-sky-700' : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  📋 My Requests
+                </Link>
+                <Link
+                  href="/dashboard/peers"
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                    isPeersActive ? 'bg-sky-50 text-sky-700' : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  👥 My Peers
+                </Link>
+                <Link
+                  href="/dashboard/report"
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                    isReportsActive ? 'bg-sky-50 text-sky-700' : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  📄 My Report
+                </Link>
+              </nav>
+            )}
+          </div>
 
           {/* User Profile & Log Off Action */}
           <div className="flex items-center gap-3">
@@ -259,10 +300,21 @@ export function Navbar() {
                 }`}
               >
                 <span className="text-base leading-none">📋</span>
-                <span className="mt-0.5">My Requests</span>
+                <span className="mt-0.5">Requests</span>
               </Link>
 
-              {/* Student Link 3: My Report */}
+              {/* Student Link 3: My Peers */}
+              <Link
+                href="/dashboard/peers"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[11px] font-bold ${
+                  isPeersActive ? 'text-sky-600' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span className="text-base leading-none">👥</span>
+                <span className="mt-0.5">My Peers</span>
+              </Link>
+
+              {/* Student Link 4: My Report */}
               <Link
                 href="/dashboard/report"
                 className={`flex flex-col items-center justify-center flex-1 py-1 text-[11px] font-bold ${
