@@ -72,7 +72,7 @@ export function Navbar() {
   const isRequestsActive = pathname.startsWith('/dashboard/requests');
   const isDmtsActive = pathname.includes('/candidates') || pathname.includes('/requests');
   const isInstructorsActive = pathname === '/instructors';
-  const isReportsActive = pathname === '/reports';
+  const isReportsActive = pathname === '/reports' || pathname === '/dashboard/report';
 
   return (
     <>
@@ -262,15 +262,16 @@ export function Navbar() {
                 <span className="mt-0.5">My Requests</span>
               </Link>
 
-              {/* Student Link 3: My Report (Export PDF) */}
-              <a
-                href="/api/courses/me/pdf"
-                download
-                className="flex flex-col items-center justify-center flex-1 py-1 text-[11px] font-bold text-slate-500 hover:text-sky-600"
+              {/* Student Link 3: My Report */}
+              <Link
+                href="/dashboard/report"
+                className={`flex flex-col items-center justify-center flex-1 py-1 text-[11px] font-bold ${
+                  isReportsActive ? 'text-sky-600' : 'text-slate-500 hover:text-slate-800'
+                }`}
               >
                 <span className="text-base leading-none">📄</span>
                 <span className="mt-0.5">My Report</span>
-              </a>
+              </Link>
             </>
           ) : (
             <>
