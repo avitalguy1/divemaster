@@ -45,10 +45,7 @@ export default function StudentPeersPage() {
 
   const query = searchQuery.trim().toLowerCase();
   const filteredPeers = peers.filter(
-    (p) =>
-      !query ||
-      p.studentName.toLowerCase().includes(query) ||
-      (p.country && p.country.toLowerCase().includes(query))
+    (p) => !query || p.studentName.toLowerCase().includes(query)
   );
 
   return (
@@ -74,7 +71,7 @@ export default function StudentPeersPage() {
         <span className="text-slate-400 font-bold text-sm">🔍</span>
         <Input
           type="text"
-          placeholder="Search peers by name or country..."
+          placeholder="Search peers by candidate name..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 h-10 font-medium"
@@ -109,7 +106,6 @@ export default function StudentPeersPage() {
               <TableHeader>
                 <TableRow className="border-slate-200 hover:bg-transparent">
                   <TableHead className="text-slate-700 font-bold">Candidate Name</TableHead>
-                  <TableHead className="text-slate-700 font-bold">Country</TableHead>
                   <TableHead className="text-slate-700 font-bold">Status</TableHead>
                   <TableHead className="text-slate-700 font-bold">Approved Units</TableHead>
                   <TableHead className="text-slate-700 font-bold w-48">Overall Progress</TableHead>
@@ -132,10 +128,6 @@ export default function StudentPeersPage() {
                           </Badge>
                         )}
                       </div>
-                    </TableCell>
-
-                    <TableCell className="font-medium text-slate-600">
-                      {peer.country || 'N/A'}
                     </TableCell>
 
                     <TableCell>
