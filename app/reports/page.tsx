@@ -107,19 +107,6 @@ export default function ReportsPage() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 md:pl-64">
       <div className="p-4 sm:p-8 space-y-6 max-w-7xl mx-auto pb-20 sm:pb-8">
-      {/* Top Navigation Bar with Back to Home Button */}
-      <div className="flex items-center justify-between gap-4">
-        <Link href="/dashboard">
-          <Button
-            variant="outline"
-            className="border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-extrabold flex items-center gap-2 shadow-xs h-10 px-4 text-sm"
-          >
-            <span className="text-base">←</span>
-            <span>🏠 Back to Home Dashboard</span>
-          </Button>
-        </Link>
-      </div>
-
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-sky-700 via-cyan-600 to-teal-600 p-6 sm:p-8 rounded-2xl text-white shadow-lg shadow-sky-600/15">
         <div>

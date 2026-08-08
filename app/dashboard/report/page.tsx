@@ -103,19 +103,9 @@ export default function StudentReportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-8 space-y-6 max-w-5xl mx-auto pb-24 sm:pb-8">
-      {/* Navigation Top Bar with Prominent Back to Dashboard Button */}
-      <div className="flex items-center justify-between gap-4">
-        <Link href="/dashboard">
-          <Button
-            variant="outline"
-            className="border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-extrabold flex items-center gap-2 shadow-xs h-11 px-4 text-sm"
-          >
-            <span className="text-lg">←</span>
-            <span>🏠 Back to Home Dashboard</span>
-          </Button>
-        </Link>
-
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-8 space-y-6 max-w-5xl mx-auto pb-20 sm:pb-8">
+      {/* Top Action Bar */}
+      <div className="flex justify-end items-center">
         <Button
           disabled={isDownloading}
           onClick={handleDownloadPdf}
@@ -231,16 +221,6 @@ export default function StudentReportPage() {
           </Table>
         </CardContent>
       </Card>
-
-      {/* Bottom Sticky Floating Back to Home Control (Mobile Optimized for PWA Standalone Mode) */}
-      <div className="sm:hidden fixed bottom-16 left-4 right-4 z-40">
-        <Link href="/dashboard">
-          <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold shadow-xl h-12 rounded-xl flex items-center justify-center gap-2 border border-slate-700">
-            <span className="text-lg">🏠</span>
-            <span>Return to Home Dashboard</span>
-          </Button>
-        </Link>
-      </div>
     </div>
   );
 }
