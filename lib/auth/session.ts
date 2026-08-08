@@ -16,11 +16,11 @@ const getSecretKey = () => {
 
 export const SESSION_COOKIE_NAME = 'session';
 
-export async function signAccessToken(payload: UserSessionPayload): Promise<string> {
+export async function signAccessToken(payload: UserSessionPayload, expiresIn: string = '7d'): Promise<string> {
   return await new SignJWT({ ...payload })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime('15m')
+    .setExpirationTime(expiresIn)
     .sign(getSecretKey());
 }
 
@@ -49,9 +49,10 @@ export async function verifyToken(token: string): Promise<UserSessionPayload | n
 export async function setSessionCookie(token: string): Promise<void> {
   try {
     const cookieStore = await cookies();
+    const isProduction = process.env.NODE_ENV === 'production';
     cookieStore.set(SESSION_COOKIE_NAME, token, {
       httpOnly: true,
-      secure: false,
+      secure: isProduction,
       sameSite: 'lax',
       path: '/',
       maxAge: 7 * 24 * 60 * 60, // 7 days session duration

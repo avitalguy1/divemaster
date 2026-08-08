@@ -45,6 +45,24 @@ describe('Authentication & Authorization Unit Tests', () => {
       const verified = await verifyToken('invalid.jwt.token');
       expect(verified).toBeNull();
     });
+
+    it('should handle custom expiration times and reject expired tokens', async () => {
+      const payload = {
+        userId: '123e4567-e89b-12d3-a456-426614174000',
+        diveCenterId: '123e4567-e89b-12d3-a456-426614174001',
+        role: 'STUDENT' as const,
+        email: 'student0@example.com',
+      };
+
+      const expiredToken = await signAccessToken(payload, '-1s');
+      const verifiedExpired = await verifyToken(expiredToken);
+      expect(verifiedExpired).toBeNull();
+
+      const validSessionToken = await signAccessToken(payload, '7d');
+      const verifiedValid = await verifyToken(validSessionToken);
+      expect(verifiedValid).not.toBeNull();
+      expect(verifiedValid?.userId).toBe(payload.userId);
+    });
   });
 
   describe('Login Route Handler (/api/auth/login)', () => {
