@@ -107,8 +107,8 @@ export default function StudentPeersPage() {
                 <TableRow className="border-slate-200 hover:bg-transparent">
                   <TableHead className="text-slate-700 font-bold">Candidate Name</TableHead>
                   <TableHead className="text-slate-700 font-bold">Status</TableHead>
-                  <TableHead className="text-slate-700 font-bold">Approved Units</TableHead>
                   <TableHead className="text-slate-700 font-bold w-48">Overall Progress</TableHead>
+                  <TableHead className="text-slate-700 font-bold text-right">Approved Units</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -142,10 +142,6 @@ export default function StudentPeersPage() {
                       )}
                     </TableCell>
 
-                    <TableCell className="font-mono font-bold text-slate-800">
-                      {peer.approvedUnits} / 53 Units
-                    </TableCell>
-
                     <TableCell className="w-48">
                       <div className="space-y-1">
                         <div className="text-xs text-slate-700 font-mono font-bold text-right">
@@ -153,6 +149,10 @@ export default function StudentPeersPage() {
                         </div>
                         <Progress value={peer.percentComplete} className="h-2 bg-slate-100" />
                       </div>
+                    </TableCell>
+
+                    <TableCell className="font-mono font-bold text-slate-800 text-right">
+                      {peer.approvedUnits} / 53 Units
                     </TableCell>
                   </TableRow>
                 ))}
