@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { NextRequest } from 'next/server';
 
 export interface UserSessionPayload {
@@ -49,10 +49,19 @@ export async function verifyToken(token: string): Promise<UserSessionPayload | n
 export async function setSessionCookie(token: string): Promise<void> {
   try {
     const cookieStore = await cookies();
-    const isProduction = process.env.NODE_ENV === 'production';
+    let isHttps = false;
+    try {
+      const reqHeaders = await headers();
+      const proto = reqHeaders.get('x-forwarded-proto');
+      const referer = reqHeaders.get('referer');
+      isHttps = proto === 'https' || (referer ? referer.startsWith('https://') : false) || process.env.COOKIE_SECURE === 'true';
+    } catch {
+      isHttps = process.env.COOKIE_SECURE === 'true';
+    }
+
     cookieStore.set(SESSION_COOKIE_NAME, token, {
       httpOnly: true,
-      secure: isProduction,
+      secure: isHttps,
       sameSite: 'lax',
       path: '/',
       maxAge: 7 * 24 * 60 * 60, // 7 days session duration
